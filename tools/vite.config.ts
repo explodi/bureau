@@ -18,6 +18,8 @@ export default defineConfig({
   publicDir: false,
   logLevel: "warn",
   resolve: {
+    // A game's TSX sits outside this folder and takes the React it is pinned to.
+    dedupe: ["react"],
     alias: [
       {
         find: "platform",

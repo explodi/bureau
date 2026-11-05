@@ -81,22 +81,30 @@ beside the archive, names its commit and SHA-256. A particular commit's package 
 at `releases/download/main-<its first 12 characters>/bureau.tar.gz`, and its bytes
 never change.
 
-In your CMake project:
+From Bureau's folder, fetch Hermes, then write out the looks and compile your TSX:
+
+```sh
+cd third_party/bureau
+deno task hermes                                    # the pinned Hermes, once
+deno task tokens ../../ui/tokens.json               # the looks, as JSON
+deno task bundle ../../ui/main.tsx ../../build/ui   # your TSX, as bytecode
+```
+
+Then, in your CMake project:
 
 ```cmake
 add_subdirectory(third_party/bureau)
 target_link_libraries(game PRIVATE bureau_js bureau_metal)
+# On Apple, Hermes is a framework. This runs the game from its build tree; an
+# app you ship carries a copy of the framework itself.
+set_target_properties(game PROPERTIES BUILD_RPATH "${BUREAU_HERMES_FRAMEWORKS}")
 ```
 
-Then, from Bureau's folder:
+`Options::readAsset` also answers for Bureau's own `assets/`, its fonts and icons,
+so ship that folder among your game's assets.
 
-```sh
-deno task hermes                                # the pinned Hermes, once
-deno task tokens ui/tokens.json                 # the looks, as JSON
-deno task bundle ui/main.tsx build/ui           # your TSX, as bytecode
-```
-
-Set `bureau/kit/`, `bureau/primitives`, `bureau/host`, `bureau/jsx-runtime`,
+The bundler knows Bureau's import names by itself. For your editor and type checker,
+set `bureau/kit/`, `bureau/primitives`, `bureau/host`, `bureau/jsx-runtime`,
 `bureau/pad_actions` and `platform` in your import map as `deno.json` here does.
 
 ## Backends

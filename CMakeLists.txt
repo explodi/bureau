@@ -50,6 +50,8 @@ endif()
 
 # The UI's thread: Hermes, the view's half of __native, and Ui, what a game holds.
 include(third_party/hermes.cmake)
+# On Apple, Hermes is a framework: a game's build runs from here and ships a copy.
+set(BUREAU_HERMES_FRAMEWORKS "${bureau_hermes_framework_dir}" CACHE INTERNAL "")
 if(TARGET bureau_hermes)
   add_library(bureau_js STATIC
     src/js/host.cpp src/js/inspect.cpp src/js/ui.cpp src/js/view_bridge.cpp
