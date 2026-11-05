@@ -116,7 +116,8 @@ class View {
     const bool scrollbarHeld = !press_.scrollPart.empty() &&
                                press_.scrollPart != "thumb";
     const bool isRepaintDue = std::isfinite(repaintAtMs_);
-    return isRepaintDue || coast_.node != 0 || scrollbarHeld;
+    return isRepaintDue || coast_.node != 0 || scrollbarHeld ||
+           press_.undecided();
   }
   /** The pointer is over a box that presses: the cursor a hand. */
   bool pointerOverPress() const { return pointerOverPress_; }
@@ -249,6 +250,13 @@ class View {
   bool beginScrollbar(int from, float x, float y);
   void moveScrollbar(float x, float y);
   void repeatScrollbar();
+  /** onHoverMove for each box in React's chain that listens, in its pixels. */
+  void callHoverMove(float x, float y);
+  void focusUnder(int target);
+  /** A finger inside a Scroll proved it is no scroll: it rested or lifted
+   *  without travelling. It now does what any other pointer does on landing. */
+  void settleFinger();
+  void settleRestingFinger();
 
   nlohmann::json call(int nodeId, std::string_view handler,
                       const nlohmann::json& args = nlohmann::json::array());
@@ -361,6 +369,10 @@ class View {
     std::string scrollPart;
     bool scrollHorizontal = false;
     double scrollRepeatMs = 0;
+    double startMs = 0;
+    bool settled = false;
+    /** A finger inside a Scroll that may yet be starting a scroll. */
+    bool undecided() const { return touch && scroll != 0 && !moved && !settled; }
   } press_;
   struct ScrollCoast {
     int node = 0;
