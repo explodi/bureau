@@ -13,7 +13,7 @@ constexpr int kWhite = 4;
 
 }  // namespace
 
-Atlas::Atlas() { clear(); }
+Atlas::Atlas(int size) : size_(std::max(size, kWhite + kGutter)) { clear(); }
 
 void Atlas::clear() {
   pages_.clear();
@@ -21,8 +21,8 @@ void Atlas::clear() {
   uploads_.clear();
   const std::vector<std::uint8_t> white(kWhite * kWhite * 4, 255);
   const auto entry = add("#white", kWhite, kWhite, white);
-  whiteU_ = (static_cast<float>(entry->x) + kWhite / 2.0f) / kAtlasSize;
-  whiteV_ = (static_cast<float>(entry->y) + kWhite / 2.0f) / kAtlasSize;
+  whiteU_ = (static_cast<float>(entry->x) + kWhite / 2.0f) / size_;
+  whiteV_ = (static_cast<float>(entry->y) + kWhite / 2.0f) / size_;
 }
 
 const AtlasEntry* Atlas::find(const std::string& key) const {
@@ -36,13 +36,13 @@ bool Atlas::place(Page& page, int width, int height, int& x, int& y) {
   int cursorX = page.cursorX;
   int shelfY = page.shelfY;
   int shelfHeight = page.shelfHeight;
-  if (cursorX + needWidth > kAtlasSize) {
+  if (cursorX + needWidth > size_) {
     shelfY += shelfHeight;
     shelfHeight = 0;
     cursorX = 0;
   }
   // A glyph that needs another page must not consume this page's shelf.
-  if (shelfY + needHeight > kAtlasSize) return false;
+  if (shelfY + needHeight > size_) return false;
   x = cursorX;
   y = shelfY;
   page.cursorX = cursorX + needWidth;
@@ -57,8 +57,8 @@ std::optional<AtlasEntry> Atlas::add(const std::string& key, int width,
                                      int left, int top) {
   if (const auto* existing = find(key)) return *existing;
   const bool fitsPage = width >= 0 && height >= 0 &&
-                        width <= kAtlasSize - kGutter &&
-                        height <= kAtlasSize - kGutter;
+                        width <= size_ - kGutter &&
+                        height <= size_ - kGutter;
   if (!fitsPage) return std::nullopt;
   const size_t byteCount = static_cast<size_t>(width) * height * 4;
   if (pixels.size() != byteCount) {
@@ -79,21 +79,21 @@ std::optional<AtlasEntry> Atlas::add(const std::string& key, int width,
   if (!placed) {
     if (pages_.size() >= 255) return std::nullopt;
     pages_.push_back(Page{std::vector<std::uint8_t>(
-        static_cast<size_t>(kAtlasSize) * kAtlasSize * 4, 0)});
+        static_cast<size_t>(size_) * size_ * 4, 0)});
     entry.page = static_cast<int>(pages_.size() - 1);
     place(pages_.back(), width, height, entry.x, entry.y);
   }
   Page& page = pages_[entry.page];
   for (int row = 0; row < height; ++row) {
     std::memcpy(page.pixels.data() +
-                    (static_cast<size_t>(entry.y + row) * kAtlasSize +
+                    (static_cast<size_t>(entry.y + row) * size_ +
                      entry.x) * 4,
                 pixels.data() + static_cast<size_t>(row) * width * 4,
                 static_cast<size_t>(width) * 4);
   }
   if (width > 0 && height > 0) {
     uploads_.push_back(AtlasUpload{entry.page, entry.x, entry.y, width, height,
-                                   pixels});
+                                   pixels, size_});
   }
   entries_.emplace(key, entry);
   return entry;
@@ -108,8 +108,8 @@ std::vector<AtlasUpload> Atlas::takeUploads() {
 std::vector<AtlasUpload> Atlas::everything() const {
   std::vector<AtlasUpload> pages;
   for (size_t index = 0; index < pages_.size(); ++index) {
-    pages.push_back(AtlasUpload{static_cast<int>(index), 0, 0, kAtlasSize,
-                                kAtlasSize, pages_[index].pixels});
+    pages.push_back(AtlasUpload{static_cast<int>(index), 0, 0, size_, size_,
+                                pages_[index].pixels, size_});
   }
   return pages;
 }

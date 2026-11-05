@@ -107,6 +107,24 @@ The bundler knows Bureau's import names by itself. For your editor and type chec
 set `bureau/kit/`, `bureau/primitives`, `bureau/host`, `bureau/jsx-runtime`,
 `bureau/pad_actions` and `platform` in your import map as `deno.json` here does.
 
+### One Xcode project for several Apple platforms
+
+A project that configures once and lets each app pick its SDK turns on
+`BUREAU_APPLE_ANY_SDK` before it adds Bureau, and calls `bureau_hermes_by_sdk` for
+each app. The app then finds the Hermes for its SDK when it builds, and carries a
+signed copy of it.
+
+```cmake
+set(BUREAU_APPLE_ANY_SDK ON)
+set_property(GLOBAL PROPERTY XCODE_EMIT_EFFECTIVE_PLATFORM_NAME ON)
+add_subdirectory(third_party/bureau)
+target_link_libraries(game_ios PRIVATE bureau_js)
+bureau_hermes_by_sdk(game_ios)
+```
+
+[`tests/apple_any_sdk`](../tests/apple_any_sdk/CMakeLists.txt) is such a game, and
+its first lines say how to build it.
+
 ## Backends
 
 A backend draws a display list into your own pass, with your own device. Link
@@ -130,6 +148,22 @@ blending, one scissor per run. `bureau::backends::batchesOf`
 (`bureau/backends/quads.h`) gives you the vertices and the runs. Draw into a
 UNORM target, not an sRGB one: the UI's colours are sRGB-encoded already and
 blend in that encoding.
+
+### A renderer with little texture memory
+
+A renderer like a console's, with small pages and no way to blend a glyph's edge,
+changes three of `Ui::Options`. Left alone, nothing changes.
+
+| Option            | Default            | What it does                                             |
+| ----------------- | ------------------ | -------------------------------------------------------- |
+| `atlasSize`       | `kAtlasSize`       | The side of an atlas page, in texels                     |
+| `atlasPageBudget` | `kAtlasPageBudget` | The pages the atlas holds before a frame bakes afresh    |
+| `monochromeText`  | `false`            | One bit of coverage per pixel, with pens on whole pixels |
+
+Each `AtlasUpload` says its page's side in `pageSize`, and every backend makes
+pages that size. The Vulkan and Direct3D 12 backends hold `kAtlasPageBudget` pages
+at most. A frame that alone bakes past the budget still raises it, as it does at
+the default size. Monochrome text is clearest in a pixel font at its own size.
 
 ## Writing the UI
 

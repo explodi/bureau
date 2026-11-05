@@ -307,13 +307,13 @@ struct VulkanBackend::Impl {
     vkDestroyShaderModule(device, fragment, nullptr);
   }
 
-  void createPage() {
+  void createPage(int size) {
     Page page;
     VkImageCreateInfo image{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
     image.imageType = VK_IMAGE_TYPE_2D;
     image.format = VK_FORMAT_R8G8B8A8_UNORM;
-    image.extent = {static_cast<std::uint32_t>(kAtlasSize),
-                    static_cast<std::uint32_t>(kAtlasSize), 1};
+    image.extent = {static_cast<std::uint32_t>(size),
+                    static_cast<std::uint32_t>(size), 1};
     image.mipLevels = 1;
     image.arrayLayers = 1;
     image.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -421,7 +421,7 @@ void VulkanBackend::upload(VkCommandBuffer commands, std::uint32_t slot,
   for (HostBuffer& staging : vk.slots[slot].staging) vk.destroyBuffer(staging);
   vk.slots[slot].staging.clear();
   for (const AtlasUpload& upload : uploads) {
-    while (static_cast<int>(vk.pages.size()) <= upload.page) vk.createPage();
+    while (static_cast<int>(vk.pages.size()) <= upload.page) vk.createPage(upload.pageSize);
     Page& page = vk.pages[upload.page];
     HostBuffer staging =
         vk.createBuffer(upload.pixels.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT);

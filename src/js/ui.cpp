@@ -201,6 +201,8 @@ Ui::Ui(Options options) : impl_(std::make_unique<Impl>()) {
         return std::make_shared<const std::vector<uint8_t>>(bytes->begin(),
                                                             bytes->end());
       });
+  impl->view->setAtlas(impl->options.atlasSize, impl->options.atlasPageBudget);
+  impl->view->setMonochromeText(impl->options.monochromeText);
   impl->view->loadTokens(impl->options.tokens);
   impl->view->setViewport(impl->width, impl->height, impl->scale);
   impl->view->setLanguage(languageOf(impl->options.language));

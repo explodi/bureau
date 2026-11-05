@@ -10,6 +10,13 @@
 
 namespace bureau {
 
+/** An atlas page's side in texels, unless Ui::Options::atlasSize says otherwise. */
+inline constexpr int kAtlasSize = 2048;
+/** The pages a view's atlas holds before a frame bakes afresh, unless
+ * Ui::Options::atlasPageBudget says otherwise: 128 MB of pixels at the default
+ * size, kept once in the view and once on the GPU. */
+inline constexpr int kAtlasPageBudget = 8;
+
 /** How a quad reads its texel. */
 enum class QuadMode : std::uint8_t {
   /** The colour alone (the atlas's white texel). */
@@ -49,6 +56,8 @@ struct AtlasUpload {
   int page;
   int x, y, width, height;
   std::vector<std::uint8_t> pixels;
+  /** The side of the page they go into, in texels. */
+  int pageSize = kAtlasSize;
 };
 
 struct DisplayList {
@@ -61,10 +70,5 @@ struct DisplayList {
   std::vector<std::string> missingImages;
   std::uint64_t version = 0;
 };
-
-inline constexpr int kAtlasSize = 2048;
-/** The pages a view's atlas holds before a frame bakes afresh: 128 MB of
- * pixels, kept once in the view and once on the GPU. */
-inline constexpr int kAtlasPageBudget = 8;
 
 }  // namespace bureau

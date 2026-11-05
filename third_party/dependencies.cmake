@@ -38,6 +38,11 @@ set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)
 set(HB_HAVE_FREETYPE ON CACHE BOOL "" FORCE)
 # HarfBuzz's CMake port uses its own iOS switch to link CoreText frameworks.
 set(HB_IOS ${IOS})
+# And it finds them for the one SDK a project configures with. Bureau shapes with
+# HarfBuzz's own OpenType shaper, so a project of several SDKs goes without.
+if(BUREAU_APPLE_ANY_SDK)
+  set(HB_HAVE_CORETEXT OFF CACHE BOOL "" FORCE)
+endif()
 set(HB_BUILD_SUBSET OFF CACHE BOOL "" FORCE)
 set(HB_BUILD_UTILS OFF CACHE BOOL "" FORCE)
 

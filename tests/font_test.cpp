@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <numeric>
+#include <set>
 
 #include "goldens.h"
 
@@ -23,6 +24,24 @@ TEST_CASE("Jersey 25 loads, shapes and rasterizes unhinted at UI size") {
   CHECK(raster.coverage[2] == 8);
   CHECK(raster.coverage[3] == 181);
   CHECK(raster.coverage[4] == 248);
+}
+
+TEST_CASE("a monochrome raster is all or nothing") {
+  bureau::Font font(std::string(BUREAU_FONT_DIR) + "/Jersey25-Regular.ttf", 18);
+  REQUIRE(font.valid());
+  const auto index = font.shape("A")[0].index;
+  const auto raster = font.raster(index, 0, true);
+  CHECK(raster.coverage.size() == static_cast<size_t>(raster.width * raster.height));
+  const std::set<uint8_t> levels(raster.coverage.begin(), raster.coverage.end());
+  CHECK(levels == std::set<uint8_t>{0, 255});
+}
+
+TEST_CASE("a raster has gray levels unless asked for one bit") {
+  bureau::Font font(std::string(BUREAU_FONT_DIR) + "/Jersey25-Regular.ttf", 18);
+  REQUIRE(font.valid());
+  const auto raster = font.raster(font.shape("A")[0].index);
+  const std::set<uint8_t> levels(raster.coverage.begin(), raster.coverage.end());
+  CHECK(levels.size() > 2);
 }
 
 TEST_CASE("Japanese text shapes with a positive advance") {

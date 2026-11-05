@@ -140,7 +140,7 @@ void View::paint() {
   // A frame that alone fills most of the budget raises it, or the next frame
   // would start over again.
   if (startsOver) {
-    atlasPageBudget_ = std::max(kAtlasPageBudget, 2 * atlas_.pages());
+    atlasPageBudget_ = std::max(atlasPageFloor_, 2 * atlas_.pages());
   }
 }
 
@@ -490,10 +490,10 @@ void View::paintBox(int id, const UiRect& rect, PaintState& state) {
     const style::Color tint = faded(style::Color{255, 255, 255, 255}, state.opacity);
     state.list->quads.push_back(Quad{
         static_cast<float>(x0), static_cast<float>(y0), static_cast<float>(x1),
-        static_cast<float>(y1), static_cast<float>(entry->x) / kAtlasSize,
-        static_cast<float>(entry->y) / kAtlasSize,
-        static_cast<float>(entry->x + width) / kAtlasSize,
-        static_cast<float>(entry->y + height) / kAtlasSize, tint.r, tint.g,
+        static_cast<float>(y1), static_cast<float>(entry->x) / atlas_.size(),
+        static_cast<float>(entry->y) / atlas_.size(),
+        static_cast<float>(entry->x + width) / atlas_.size(),
+        static_cast<float>(entry->y + height) / atlas_.size(), tint.r, tint.g,
         tint.b, tint.a, QuadMode::Picture, static_cast<std::uint8_t>(entry->page),
         0, false, state.clip});
     return;
@@ -566,9 +566,9 @@ void View::paintBox(int id, const UiRect& rect, PaintState& state) {
           state.list->quads.push_back(
               Quad{static_cast<float>(x0), static_cast<float>(y0),
                    static_cast<float>(x1), static_cast<float>(y1),
-                   u0 / kAtlasSize, v0 / kAtlasSize,
-                   (u0 + shownWidth) / kAtlasSize,
-                   (v0 + shownHeight) / kAtlasSize, tint.r, tint.g, tint.b,
+                   u0 / atlas_.size(), v0 / atlas_.size(),
+                   (u0 + shownWidth) / atlas_.size(),
+                   (v0 + shownHeight) / atlas_.size(), tint.r, tint.g, tint.b,
                    tint.a, QuadMode::Picture,
                    static_cast<std::uint8_t>(entry->page), 0, true,
                    state.clip});
@@ -804,6 +804,11 @@ void View::paintText(int id, const UiRect& rect, PaintState& state) {
       whole += 1;
       quarter = 0;
     }
+    // One bit of coverage has no use for a fraction of a pixel.
+    if (monochromeText_) {
+      whole = std::round(penX);
+      quarter = 0;
+    }
     const std::string source = fonts_.sourceOf(device);
     const std::string key = glyphKey(source, device->size(), glyph.glyph, quarter);
     const AtlasEntry* found = atlas_.find(key);
@@ -811,7 +816,8 @@ void View::paintText(int id, const UiRect& rect, PaintState& state) {
     if (found != nullptr) {
       entry = *found;
     } else {
-      const RasterGlyph raster = device->raster(glyph.glyph, quarter / 4.0f);
+      const RasterGlyph raster =
+          device->raster(glyph.glyph, quarter / 4.0f, monochromeText_);
       std::vector<std::uint8_t> pixels(raster.coverage.size() * 4);
       for (size_t index = 0; index < raster.coverage.size(); ++index) {
         const std::uint8_t coverage = raster.coverage[index];
@@ -829,10 +835,10 @@ void View::paintText(int id, const UiRect& rect, PaintState& state) {
     color = faded(color, state.opacity);
     state.list->quads.push_back(Quad{
         x0, y0, x0 + entry->width, y0 + entry->height,
-        static_cast<float>(entry->x) / kAtlasSize,
-        static_cast<float>(entry->y) / kAtlasSize,
-        static_cast<float>(entry->x + entry->width) / kAtlasSize,
-        static_cast<float>(entry->y + entry->height) / kAtlasSize, color.r,
+        static_cast<float>(entry->x) / atlas_.size(),
+        static_cast<float>(entry->y) / atlas_.size(),
+        static_cast<float>(entry->x + entry->width) / atlas_.size(),
+        static_cast<float>(entry->y + entry->height) / atlas_.size(), color.r,
         color.g, color.b, color.a, QuadMode::Mask,
         static_cast<std::uint8_t>(entry->page), stipple, false, state.clip});
   };
@@ -1007,9 +1013,9 @@ void View::paintImage(int id, const UiRect& rect, PaintState& state) {
                             const AtlasEntry& entry, float v0, float height,
                             bool smooth) {
     state.list->quads.push_back(Quad{
-        x0, y0, x1, y1, static_cast<float>(entry.x) / kAtlasSize,
-        v0 / kAtlasSize, static_cast<float>(entry.x + entry.width) / kAtlasSize,
-        (v0 + height) / kAtlasSize, color.r, color.g, color.b, color.a,
+        x0, y0, x1, y1, static_cast<float>(entry.x) / atlas_.size(),
+        v0 / atlas_.size(), static_cast<float>(entry.x + entry.width) / atlas_.size(),
+        (v0 + height) / atlas_.size(), color.r, color.g, color.b, color.a,
         tint ? QuadMode::Mask : QuadMode::Picture,
         static_cast<std::uint8_t>(entry.page), stipple, smooth, state.clip});
   };
@@ -1079,9 +1085,9 @@ void View::paintImage(int id, const UiRect& rect, PaintState& state) {
   // A bake must fit one atlas page, or the picture vanishes; past it, the
   // largest factor that fits is stretched the rest of the way.
   // The margin leaves room for the gutter and a filter's outline.
-  constexpr int kLargestBake = kAtlasSize - 16;
+  const int largestBake = atlas_.size() - 16;
   const int largestSide = std::max(bitmap->width, bitmap->height);
-  const int fittingFactor = std::max(1, kLargestBake / largestSide);
+  const int fittingFactor = std::max(1, largestBake / largestSide);
   if (factor > fittingFactor) {
     factor = fittingFactor;
     sharpBilinear = !integerPixels;
@@ -1339,7 +1345,7 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
   };
   // A wide chart at a large UI scale outgrows an atlas page, so the drawing
   // goes into the atlas as tiles that each fit one.
-  constexpr int kTile = kAtlasSize / 2;
+  const int tileSize = atlas_.size() / 2;
   const int pixelWidth = std::max(1, snap(rect.width, scale));
   const int pixelHeight = std::max(1, snap(rect.height, scale));
   std::optional<Bitmap> raster;
@@ -1352,8 +1358,8 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
                 std::max(1, snap(tokens_.effects().stippleSize / 2, scale)))
           : 0;
   const style::Color white = faded(style::Color{255, 255, 255, 255}, state.opacity);
-  for (int tileY = 0; tileY < pixelHeight; tileY += kTile) {
-    for (int tileX = 0; tileX < pixelWidth; tileX += kTile) {
+  for (int tileY = 0; tileY < pixelHeight; tileY += tileSize) {
+    for (int tileX = 0; tileX < pixelWidth; tileX += tileSize) {
       const std::string tileKey =
           key + "|" + std::to_string(tileX) + "," + std::to_string(tileY);
       std::optional<AtlasEntry> entry;
@@ -1363,7 +1369,7 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
         if (!raster) {
           raster = rasterizePlot(*commands, rect.width, rect.height, scale, ink);
         }
-        const Bitmap tile = cropped(*raster, tileX, tileY, kTile, kTile);
+        const Bitmap tile = cropped(*raster, tileX, tileY, tileSize, tileSize);
         entry = atlas_.add(tileKey, tile.width, tile.height, premultiplied(tile));
       }
       if (!entry) continue;
@@ -1371,10 +1377,10 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
       const float top = y0 + static_cast<float>(tileY);
       state.list->quads.push_back(Quad{
           left, top, left + entry->width, top + entry->height,
-          static_cast<float>(entry->x) / kAtlasSize,
-          static_cast<float>(entry->y) / kAtlasSize,
-          static_cast<float>(entry->x + entry->width) / kAtlasSize,
-          static_cast<float>(entry->y + entry->height) / kAtlasSize, white.r,
+          static_cast<float>(entry->x) / atlas_.size(),
+          static_cast<float>(entry->y) / atlas_.size(),
+          static_cast<float>(entry->x + entry->width) / atlas_.size(),
+          static_cast<float>(entry->y + entry->height) / atlas_.size(), white.r,
           white.g, white.b, white.a, QuadMode::Picture,
           static_cast<std::uint8_t>(entry->page), stipple, false, state.clip});
     }
@@ -1395,10 +1401,10 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
         x0 + std::round(image.x * scale), y0 + std::round(image.y * scale),
         x0 + std::round((image.x + image.width) * scale),
         y0 + std::round((image.y + image.height) * scale),
-        static_cast<float>(sprite->x) / kAtlasSize,
-        static_cast<float>(sprite->y) / kAtlasSize,
-        static_cast<float>(sprite->x + sprite->width) / kAtlasSize,
-        static_cast<float>(sprite->y + sprite->height) / kAtlasSize, white.r,
+        static_cast<float>(sprite->x) / atlas_.size(),
+        static_cast<float>(sprite->y) / atlas_.size(),
+        static_cast<float>(sprite->x + sprite->width) / atlas_.size(),
+        static_cast<float>(sprite->y + sprite->height) / atlas_.size(), white.r,
         white.g, white.b, white.a, QuadMode::Picture,
         static_cast<std::uint8_t>(sprite->page), 0, false, state.clip});
   }
@@ -1432,7 +1438,7 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
       if (const AtlasEntry* known = atlas_.find(glyphId)) {
         placed = *known;
       } else {
-        const RasterGlyph raster = device->raster(glyph.glyph);
+        const RasterGlyph raster = device->raster(glyph.glyph, 0, monochromeText_);
         std::vector<std::uint8_t> pixels(raster.coverage.size() * 4);
         for (size_t index = 0; index < raster.coverage.size(); ++index) {
           std::fill_n(&pixels[index * 4], 4, raster.coverage[index]);
@@ -1446,10 +1452,10 @@ void View::paintPlot(int id, const UiRect& rect, PaintState& state) {
       const float gy = baseline - placed->top;
       state.list->quads.push_back(Quad{
           gx, gy, gx + placed->width, gy + placed->height,
-          static_cast<float>(placed->x) / kAtlasSize,
-          static_cast<float>(placed->y) / kAtlasSize,
-          static_cast<float>(placed->x + placed->width) / kAtlasSize,
-          static_cast<float>(placed->y + placed->height) / kAtlasSize, shown.r,
+          static_cast<float>(placed->x) / atlas_.size(),
+          static_cast<float>(placed->y) / atlas_.size(),
+          static_cast<float>(placed->x + placed->width) / atlas_.size(),
+          static_cast<float>(placed->y + placed->height) / atlas_.size(), shown.r,
           shown.g, shown.b, shown.a, QuadMode::Mask,
           static_cast<std::uint8_t>(placed->page), 0, false, state.clip});
     }
@@ -1509,8 +1515,8 @@ void View::paintScrollbars(int id, const UiRect& rect, PaintState& state) {
     const float y0 = std::round(cy - height / 2 + state.dy) * scale;
     state.list->quads.push_back(Quad{
       x0, y0, x0 + width * scale, y0 + height * scale,
-      float(entry->x) / kAtlasSize, float(entry->y) / kAtlasSize,
-      float(entry->x + entry->width) / kAtlasSize, float(entry->y + entry->height) / kAtlasSize,
+      float(entry->x) / atlas_.size(), float(entry->y) / atlas_.size(),
+      float(entry->x + entry->width) / atlas_.size(), float(entry->y + entry->height) / atlas_.size(),
       ink.r, ink.g, ink.b, ink.a, QuadMode::Picture,
       static_cast<uint8_t>(entry->page), 0, true, state.clip});
   };
@@ -1555,8 +1561,8 @@ void View::paintScrollbars(int id, const UiRect& rect, PaintState& state) {
     const float y0 = std::round(cy - height / 2 + state.dy) * scale;
     state.list->quads.push_back(Quad{
       x0, y0, x0 + entry->width, y0 + entry->height,
-      float(entry->x) / kAtlasSize, float(entry->y) / kAtlasSize,
-      float(entry->x + entry->width) / kAtlasSize, float(entry->y + entry->height) / kAtlasSize,
+      float(entry->x) / atlas_.size(), float(entry->y) / atlas_.size(),
+      float(entry->x + entry->width) / atlas_.size(), float(entry->y + entry->height) / atlas_.size(),
       white.r, white.g, white.b, white.a, QuadMode::Picture,
       static_cast<uint8_t>(entry->page), 0, false, state.clip});
   };

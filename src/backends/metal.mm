@@ -120,8 +120,8 @@ void MetalBackend::upload(const std::vector<AtlasUpload>& uploads) {
     while (static_cast<int>(impl_->pages.count) <= upload.page) {
       MTLTextureDescriptor* texture = [MTLTextureDescriptor
           texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                       width:kAtlasSize
-                                      height:kAtlasSize
+                                       width:upload.pageSize
+                                      height:upload.pageSize
                                    mipmapped:NO];
       texture.usage = MTLTextureUsageShaderRead;
       [impl_->pages addObject:[impl_->device newTextureWithDescriptor:texture]];

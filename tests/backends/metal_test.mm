@@ -5,7 +5,9 @@
 
 #include "bureau/backends/metal.h"
 
-TEST_CASE("Metal draws the scene") {
+namespace {
+
+void drawsTheScene(int pageSize) {
   id<MTLDevice> device = MTLCreateSystemDefaultDevice();
   const bool hasDevice = device != nil;
   REQUIRE(hasDevice);
@@ -19,7 +21,7 @@ TEST_CASE("Metal draws the scene") {
   id<MTLTexture> target = [device newTextureWithDescriptor:descriptor];
 
   bureau::MetalBackend backend((__bridge void*)device, MTLPixelFormatRGBA8Unorm);
-  backend.upload(scene::uploads());
+  backend.upload(scene::uploads(pageSize));
 
   id<MTLCommandQueue> queue = [device newCommandQueue];
   id<MTLCommandBuffer> commands = [queue commandBuffer];
@@ -32,7 +34,7 @@ TEST_CASE("Metal draws the scene") {
                         scene::kClear[2] / 255.0, 1.0);
   id<MTLRenderCommandEncoder> encoder =
       [commands renderCommandEncoderWithDescriptor:pass];
-  backend.draw(scene::list(), (__bridge void*)encoder, scene::kSize, scene::kSize);
+  backend.draw(scene::list(pageSize), (__bridge void*)encoder, scene::kSize, scene::kSize);
   [encoder endEncoding];
   [commands commit];
   [commands waitUntilCompleted];
@@ -49,3 +51,9 @@ TEST_CASE("Metal draws the scene") {
     return scene::Pixel{pixel[0], pixel[1], pixel[2], pixel[3]};
   });
 }
+
+}  // namespace
+
+TEST_CASE("Metal draws the scene") { drawsTheScene(bureau::kAtlasSize); }
+
+TEST_CASE("Metal draws the scene from smaller atlas pages") { drawsTheScene(64); }

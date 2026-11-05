@@ -35,13 +35,13 @@ inline bureau::Quad quad(float x0, float y0, float x1, float y1,
 }
 
 /** A texel's place in atlas coordinates, at a pixel's middle. */
-constexpr float texel(int pixel) {
-  return (static_cast<float>(pixel) + 0.5f) / bureau::kAtlasSize;
+constexpr float texel(int pixel, int pageSize) {
+  return (static_cast<float>(pixel) + 0.5f) / pageSize;
 }
 
 /** Page 0: 2 by 1 at the corner, the left texel opaque yellow, the right clear.
  * Page 1: 1 by 1 at (4, 4), opaque teal. */
-inline std::vector<bureau::AtlasUpload> uploads() {
+inline std::vector<bureau::AtlasUpload> uploads(int pageSize = bureau::kAtlasSize) {
   bureau::AtlasUpload first;
   first.page = 0;
   first.x = 0;
@@ -49,6 +49,7 @@ inline std::vector<bureau::AtlasUpload> uploads() {
   first.width = 2;
   first.height = 1;
   first.pixels = {255, 255, 0, 255, 0, 0, 0, 0};
+  first.pageSize = pageSize;
   bureau::AtlasUpload second;
   second.page = 1;
   second.x = 4;
@@ -56,10 +57,11 @@ inline std::vector<bureau::AtlasUpload> uploads() {
   second.width = 1;
   second.height = 1;
   second.pixels = {0, 128, 128, 255};
+  second.pageSize = pageSize;
   return {first, second};
 }
 
-inline bureau::DisplayList list() {
+inline bureau::DisplayList list(int pageSize = bureau::kAtlasSize) {
   using bureau::QuadMode;
   bureau::DisplayList made;
   made.width = kSize;
@@ -74,18 +76,18 @@ inline bureau::DisplayList list() {
 
   // A mask: green through the yellow texel's alpha, nothing through the clear one.
   auto solid = quad(32, 0, 40, 16, {0, 255, 0, 255}, QuadMode::Mask);
-  solid.u0 = solid.u1 = texel(0);
-  solid.v0 = solid.v1 = texel(0);
+  solid.u0 = solid.u1 = texel(0, pageSize);
+  solid.v0 = solid.v1 = texel(0, pageSize);
   made.quads.push_back(solid);
   auto clear = quad(40, 0, 48, 16, {0, 255, 0, 255}, QuadMode::Mask);
-  clear.u0 = clear.u1 = texel(1);
-  clear.v0 = clear.v1 = texel(0);
+  clear.u0 = clear.u1 = texel(1, pageSize);
+  clear.v0 = clear.v1 = texel(0, pageSize);
   made.quads.push_back(clear);
 
   // A picture: the texel itself.
   auto picture = quad(48, 0, 64, 16, {255, 255, 255, 255}, QuadMode::Picture);
-  picture.u0 = picture.u1 = texel(0);
-  picture.v0 = picture.v1 = texel(0);
+  picture.u0 = picture.u1 = texel(0, pageSize);
+  picture.v0 = picture.v1 = texel(0, pageSize);
   made.quads.push_back(picture);
 
   // A stipple of one pixel, counted from the target's top left.
@@ -101,15 +103,15 @@ inline bureau::DisplayList list() {
   // A picture from the second page.
   auto second = quad(32, 16, 48, 32, {255, 255, 255, 255}, QuadMode::Picture);
   second.page = 1;
-  second.u0 = second.u1 = texel(4);
-  second.v0 = second.v1 = texel(4);
+  second.u0 = second.u1 = texel(4, pageSize);
+  second.v0 = second.v1 = texel(4, pageSize);
   made.quads.push_back(second);
 
   // Half a texel's worth of linear sampling across the yellow and clear texels.
   auto smooth = quad(48, 16, 64, 32, {255, 255, 255, 255}, QuadMode::Picture);
   smooth.smooth = true;
-  smooth.u0 = smooth.u1 = 1.0f / bureau::kAtlasSize;
-  smooth.v0 = smooth.v1 = texel(0);
+  smooth.u0 = smooth.u1 = 1.0f / pageSize;
+  smooth.v0 = smooth.v1 = texel(0, pageSize);
   made.quads.push_back(smooth);
 
   return made;

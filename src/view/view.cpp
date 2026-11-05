@@ -75,6 +75,19 @@ void View::clearEvents() {
   events_.clear();
 }
 
+void View::setAtlas(int size, int pageBudget) {
+  atlas_ = Atlas(size);
+  atlasPageFloor_ = std::max(1, pageBudget);
+  atlasPageBudget_ = atlasPageFloor_;
+  paintDirty_ = true;
+}
+
+void View::setMonochromeText(bool monochrome) {
+  monochromeText_ = monochrome;
+  atlas_.clear();
+  paintDirty_ = true;
+}
+
 void View::setUiScale(float scale) {
   if (scale <= 0 || scale == uiScale_) return;
   uiScale_ = scale;

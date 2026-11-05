@@ -66,6 +66,11 @@ class View {
   void setInsets(float top, float right, float bottom, float left,
                  float keyboardHeight);
   nlohmann::json safeArea() const;
+  /** Atlas pages of `size` texels a side, and how many it holds before a frame
+   * bakes afresh. Drops what the atlas holds. */
+  void setAtlas(int size, int pageBudget);
+  /** Text in one bit of coverage, with its pens on whole pixels. */
+  void setMonochromeText(bool monochrome);
   /** The UI scale setting, 0.75 to 2: the UI's pixels per point. */
   void setUiScale(float scale);
   void setInputMode(const std::string& mode);
@@ -266,6 +271,9 @@ class View {
   Atlas atlas_;
   /** Pages past which paint() starts the atlas over. */
   int atlasPageBudget_ = kAtlasPageBudget;
+  /** The least that budget is: a frame that bakes a lot only raises it. */
+  int atlasPageFloor_ = kAtlasPageBudget;
+  bool monochromeText_ = false;
   Dispatch dispatch_;
   std::string language_ = "en";
 

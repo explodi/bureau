@@ -96,6 +96,39 @@ TEST_CASE("invalid atlas input leaves packing and uploads untouched") {
   CHECK(valid->y == 0);
 }
 
+TEST_CASE("an atlas is kAtlasSize a side unless told otherwise") {
+  bureau::Atlas atlas;
+  CHECK(atlas.size() == bureau::kAtlasSize);
+  CHECK(atlas.everything()[0].pageSize == bureau::kAtlasSize);
+  CHECK(atlas.takeUploads()[0].pageSize == bureau::kAtlasSize);
+}
+
+TEST_CASE("a smaller atlas packs into pages of its own size and says so") {
+  bureau::Atlas atlas(64);
+  atlas.takeUploads();
+  const auto entry = atlas.add("wide", 63, 1, std::vector<std::uint8_t>(63 * 4, 255));
+  REQUIRE(entry.has_value());
+  CHECK(entry->page == 0);
+  CHECK(entry->y == 5);  // on the shelf below the white texel
+  CHECK(atlas.takeUploads()[0].pageSize == 64);
+  const auto pages = atlas.everything();
+  REQUIRE(pages.size() == 1);
+  CHECK(pages[0].width == 64);
+  CHECK(pages[0].pageSize == 64);
+  CHECK(pages[0].pixels.size() == 64 * 64 * 4);
+  CHECK(atlas.whiteU() == doctest::Approx(2.0 / 64));
+}
+
+TEST_CASE("a smaller atlas refuses what cannot fit its page") {
+  bureau::Atlas atlas(64);
+  CHECK_FALSE(atlas.add("too-wide", 64, 1, std::vector<std::uint8_t>(64 * 4)).has_value());
+}
+
+TEST_CASE("an atlas too small for its white texel grows to hold it") {
+  bureau::Atlas atlas(1);
+  CHECK(atlas.size() == 5);
+}
+
 TEST_CASE("clearing the atlas rebuilds the white texel and drops stale entries") {
   bureau::Atlas atlas;
   REQUIRE(atlas.add("glyph", 1, 1, {1, 2, 3, 4}).has_value());

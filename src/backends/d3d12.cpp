@@ -204,14 +204,14 @@ struct D3D12Backend::Impl {
     release(pixel);
   }
 
-  void createPage() {
+  void createPage(int size) {
     Page page;
     D3D12_HEAP_PROPERTIES local{};
     local.Type = D3D12_HEAP_TYPE_DEFAULT;
     D3D12_RESOURCE_DESC description{};
     description.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    description.Width = kAtlasSize;
-    description.Height = kAtlasSize;
+    description.Width = size;
+    description.Height = size;
     description.DepthOrArraySize = 1;
     description.MipLevels = 1;
     description.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -271,7 +271,7 @@ void D3D12Backend::upload(ID3D12GraphicsCommandList* commands, UINT slot,
   for (HostBuffer& staging : d3d.slots[slot].staging) d3d.destroyBuffer(staging);
   d3d.slots[slot].staging.clear();
   for (const AtlasUpload& upload : uploads) {
-    while (static_cast<int>(d3d.pages.size()) <= upload.page) d3d.createPage();
+    while (static_cast<int>(d3d.pages.size()) <= upload.page) d3d.createPage(upload.pageSize);
     Page& page = d3d.pages[upload.page];
 
     const UINT rowBytes = static_cast<UINT>(upload.width) * 4;

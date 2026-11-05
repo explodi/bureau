@@ -69,10 +69,10 @@ struct Context {
 
 }  // namespace
 
-TEST_CASE("OpenGL draws the scene, and leaves GL's state as it found it") {
-  Context context;
-  bureau::OpenGlBackend backend(Context::load);
+namespace {
 
+/** A target of the scene's size, bound and cleared. Returns its texture. */
+GLuint makeTarget() {
   GLuint target = 0;
   glGenTextures(1, &target);
   glBindTexture(GL_TEXTURE_2D, target);
@@ -100,6 +100,27 @@ TEST_CASE("OpenGL draws the scene, and leaves GL's state as it found it") {
   glClearColor(scene::kClear[0] / 255.0f, scene::kClear[1] / 255.0f,
                scene::kClear[2] / 255.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+  return target;
+}
+
+void checkTarget() {
+  std::vector<std::uint8_t> pixels(scene::kSize * scene::kSize * 4);
+  glReadPixels(0, 0, scene::kSize, scene::kSize, GL_RGBA, GL_UNSIGNED_BYTE,
+               pixels.data());
+  scene::check([&](int x, int y) {
+    // GL's rows count from the bottom.
+    const int row = scene::kSize - 1 - y;
+    const std::uint8_t* pixel = &pixels[(row * scene::kSize + x) * 4];
+    return scene::Pixel{pixel[0], pixel[1], pixel[2], pixel[3]};
+  });
+}
+
+}  // namespace
+
+TEST_CASE("OpenGL draws the scene, and leaves GL's state as it found it") {
+  Context context;
+  bureau::OpenGlBackend backend(Context::load);
+  const GLuint target = makeTarget();
 
   glEnable(GL_DEPTH_TEST);
   glViewport(1, 2, 3, 4);
@@ -117,13 +138,15 @@ TEST_CASE("OpenGL draws the scene, and leaves GL's state as it found it") {
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &bound);
   CHECK(static_cast<GLuint>(bound) == target);
 
-  std::vector<std::uint8_t> pixels(scene::kSize * scene::kSize * 4);
-  glReadPixels(0, 0, scene::kSize, scene::kSize, GL_RGBA, GL_UNSIGNED_BYTE,
-               pixels.data());
-  scene::check([&](int x, int y) {
-    // GL's rows count from the bottom.
-    const int row = scene::kSize - 1 - y;
-    const std::uint8_t* pixel = &pixels[(row * scene::kSize + x) * 4];
-    return scene::Pixel{pixel[0], pixel[1], pixel[2], pixel[3]};
-  });
+  checkTarget();
+}
+
+TEST_CASE("OpenGL draws the scene from smaller atlas pages") {
+  Context context;
+  bureau::OpenGlBackend backend(Context::load);
+  makeTarget();
+  backend.upload(scene::uploads(64));
+  backend.draw(scene::list(64), scene::kSize, scene::kSize);
+  REQUIRE(glGetError() == GL_NO_ERROR);
+  checkTarget();
 }

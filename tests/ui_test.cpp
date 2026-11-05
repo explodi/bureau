@@ -8,6 +8,7 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <set>
 #include <string>
 #include <thread>
 
@@ -31,8 +32,10 @@ struct Game {
   std::shared_ptr<const bureau::DisplayList> list;
   std::unique_ptr<bureau::Ui> ui;
 
-  Game() {
+  explicit Game(int atlasSize = bureau::kAtlasSize, bool monochromeText = false) {
     bureau::Ui::Options options;
+    options.atlasSize = atlasSize;
+    options.monochromeText = monochromeText;
     const auto bytecode = readFile(BUREAU_HELLO_BUNDLE);
     REQUIRE(bytecode.has_value());
     options.bytecode.assign(bytecode->begin(), bytecode->end());
@@ -133,6 +136,39 @@ TEST_CASE("a resize draws the next list at the new size") {
   game.ui->resize(640, 400, 2);
   game.until([&] { return game.list->width == 1280; });
   CHECK(game.list->height == 800);
+  game.ui->stop();
+}
+
+TEST_CASE("a game's atlas size reaches its uploads") {
+  Game game(256);
+  std::vector<bureau::AtlasUpload> uploads;
+  const auto started = std::chrono::steady_clock::now();
+  while (uploads.empty() &&
+         std::chrono::steady_clock::now() - started < std::chrono::seconds(20)) {
+    uploads = game.ui->takeFrame().uploads;
+    game.ui->refresh(0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(4));
+  }
+  REQUIRE_FALSE(uploads.empty());
+  CHECK(uploads[0].pageSize == 256);
+  game.ui->stop();
+}
+
+TEST_CASE("a game's monochrome text reaches its uploads") {
+  Game game(bureau::kAtlasSize, true);
+  std::vector<bureau::AtlasUpload> uploads;
+  const auto started = std::chrono::steady_clock::now();
+  while (uploads.size() < 2 &&
+         std::chrono::steady_clock::now() - started < std::chrono::seconds(20)) {
+    const auto frame = game.ui->takeFrame();
+    uploads.insert(uploads.end(), frame.uploads.begin(), frame.uploads.end());
+    game.ui->refresh(0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(4));
+  }
+  REQUIRE(uploads.size() >= 2);
+  // The first is the white texel, and the hello bundle's next is a glyph.
+  const std::set<std::uint8_t> levels(uploads[1].pixels.begin(), uploads[1].pixels.end());
+  CHECK(levels == std::set<std::uint8_t>{0, 255});
   game.ui->stop();
 }
 
