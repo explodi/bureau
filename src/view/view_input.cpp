@@ -12,6 +12,8 @@ namespace {
 
 /** Travel past this is a drag, so letting go is not also a press. */
 constexpr float kDragSlop = 8;
+// Long enough that a finger starting a scroll has passed the slop by then.
+constexpr double kFingerRestMs = 250;
 
 Json keyJson(const KeyEvent& event) {
   return Json{{"key", event.key},     {"code", event.code},
@@ -189,6 +191,53 @@ void View::updateHover(int target) {
       call(*entered, "onHoverChange", Json::array({true}));
     }
   }
+}
+
+void View::callHoverMove(float x, float y) {
+  for (const int listener : reactHoverChain_) {
+    const Node* found = node(listener);
+    if (found == nullptr || !flag(*found, "onHoverMove")) continue;
+    if (flag(*found, "disabled") || flag(*found, "passThrough")) continue;
+    const auto placed = places_.find(listener);
+    if (placed == places_.end()) continue;
+    const PaintedShift painted = paintedShiftOf(listener);
+    const UiRect& rect = placed->second->rect;
+    const float scale = placed->second->scale;
+    call(listener, "onHoverMove",
+         Json::array({Json{{"x", (x - painted.dx - rect.x) / scale},
+                           {"y", (y - painted.dy - rect.y) / scale}}}));
+  }
+}
+
+void View::focusUnder(int target) {
+  // The nearest focusable box, or nowhere: a click on bare ground blurs what
+  // had it.
+  int focusTarget = 0;
+  for (int current = target; current > 0; current = placedParent(current)) {
+    if (canFocus(current)) {
+      focusTarget = current;
+      break;
+    }
+  }
+  const Node* fieldNode = node(focusTarget);
+  const bool textField = fieldNode != nullptr && fieldNode->type == kField &&
+                         textProp(*fieldNode, "kind") != "range";
+  // A text field shows its ring on a click: typing goes where the ring is.
+  setFocus(focusTarget, textField);
+}
+
+void View::settleFinger() {
+  press_.settled = true;
+  const int target = hitTest(pointerX_, pointerY_);
+  focusUnder(target);
+  updateHover(target);
+  callHoverMove(pointerX_, pointerY_);
+}
+
+void View::settleRestingFinger() {
+  if (!press_.undecided() || nowMs_ - press_.startMs < kFingerRestMs) return;
+  ensureLayout();
+  settleFinger();
 }
 
 void View::setFocus(int id, bool visible) {
@@ -562,21 +611,10 @@ void View::pointer(const PointerEvent& event) {
       }
     }
     const int target = hitTest(x, y);
-    updateHover(target);
-    // onHoverMove for each box in React's chain that listens, in its pixels.
-    for (const int listener : reactHoverChain_) {
-      const Node* found = node(listener);
-      if (found == nullptr || !flag(*found, "onHoverMove")) continue;
-      if (flag(*found, "disabled") || flag(*found, "passThrough")) continue;
-      const auto placed = places_.find(listener);
-      if (placed == places_.end()) continue;
-      const PaintedShift painted = paintedShiftOf(listener);
-      const UiRect& rect = placed->second->rect;
-      const float scale = placed->second->scale;
-      call(listener, "onHoverMove",
-           Json::array({Json{{"x", (x - painted.dx - rect.x) / scale},
-                             {"y", (y - painted.dy - rect.y) / scale}}}));
-    }
+    const bool fingerInScroll = press_.touch && press_.scroll != 0;
+    if (!fingerInScroll) updateHover(target);
+    else if (press_.moved) updateHover(0);
+    callHoverMove(x, y);
     const bool overCity = overSurface(target);
     if (overCity || press_.node == 0) {
       call(0, "__surface",
@@ -593,27 +631,26 @@ void View::pointer(const PointerEvent& event) {
 
   if (event.kind == PointerEvent::Kind::Down) {
     call(0, "__presence", Json::array({event.touch ? "touch" : "mouse"}));
+    const int coasting = coast_.node;
     coast_ = ScrollCoast{};
     keyboardLast_ = false;
     const int target = hitTest(x, y);
-    updateHover(target);
     std::vector<int> chain;
+    int fingerScroll = 0;
     for (int current = target; current > 0; current = placedParent(current)) {
       chain.push_back(current);
+      const Node* found = node(current);
+      const bool isScroll = found != nullptr && found->type == kScroll;
+      if (event.touch && fingerScroll == 0 && isScroll) fingerScroll = current;
     }
+    // A finger inside a Scroll may be starting a scroll, so it hovers and
+    // focuses only once settleFinger rules that out. The last tap's hover
+    // stays until then: a key it reveals may be what this finger is pressing.
+    if (fingerScroll == 0) updateHover(target);
     call(0, "__pointerDown",
          Json::array({chain, event.touch ? "touch" : "mouse"}));
     if (overSurface(target)) call(0, "__surface", Json::array({"down", surface}));
 
-    // Focus goes to the nearest focusable box under the press, or nowhere:
-    // a click on bare ground blurs what had it.
-    int focusTarget = 0;
-    for (int current = target; current > 0; current = placedParent(current)) {
-      if (canFocus(current)) {
-        focusTarget = current;
-        break;
-      }
-    }
     if (event.button != 0) return;
     if (!event.touch && beginScrollbar(target, x, y)) return;
     press_ = Press{};
@@ -640,28 +677,18 @@ void View::pointer(const PointerEvent& event) {
       }
       current = found->parent;
     }
-    if (event.touch) {
-      for (int current = target; current > 0; current = placedParent(current)) {
-        const Node* found = node(current);
-        if (found != nullptr && found->type == kScroll) {
-          press_.scroll = current;
-          press_.scrollStartX = live_[current].scrollX;
-          press_.scrollStartY = live_[current].scrollY;
-          press_.scrollSampleX = press_.scrollStartX;
-          press_.scrollSampleY = press_.scrollStartY;
-          press_.scrollSampleMs = nowMs_;
-          break;
-        }
-      }
-    }
-    const Node* fieldNode = node(focusTarget);
-    const bool textField = fieldNode != nullptr && fieldNode->type == kField &&
-                           textProp(*fieldNode, "kind") != "range";
-    // A text field shows its ring on a click: typing goes where the ring is.
-    if (focusTarget != 0) {
-      setFocus(focusTarget, textField);
-    } else if (focused_ != 0) {
-      setFocus(0, false);
+    if (fingerScroll != 0) {
+      press_.scroll = fingerScroll;
+      press_.scrollStartX = live_[fingerScroll].scrollX;
+      press_.scrollStartY = live_[fingerScroll].scrollY;
+      press_.scrollSampleX = press_.scrollStartX;
+      press_.scrollSampleY = press_.scrollStartY;
+      press_.scrollSampleMs = nowMs_;
+      press_.startMs = nowMs_;
+      // Stopping a coast is part of scrolling: the finger taps nothing.
+      press_.moved = fingerScroll == coasting;
+    } else {
+      focusUnder(target);
     }
     if (press_.node != 0) {
       const Node* pressed = node(press_.node);
@@ -685,6 +712,7 @@ void View::pointer(const PointerEvent& event) {
   if (event.kind == PointerEvent::Kind::Up ||
       event.kind == PointerEvent::Kind::Cancel) {
     const bool cancelled = event.kind == PointerEvent::Kind::Cancel;
+    if (!cancelled && press_.undecided()) settleFinger();
     const Press pressed = press_;
     press_ = Press{};
     const bool recentScroll = nowMs_ - pressed.scrollSampleMs < 80;
@@ -737,7 +765,10 @@ void View::pointer(const PointerEvent& event) {
       if (overCity) call(0, "__surface", Json::array({"up", surface}));
       call(0, "__surface", Json::array({"upAnywhere", surface}));
     }
-    updateHover(hitTest(x, y));
+    // A finger that scrolled, or was cancelled first, leaves nothing hovered.
+    const bool fingerInScroll = pressed.touch && pressed.scroll != 0;
+    const bool touched = pressed.settled && !pressed.moved;
+    updateHover(fingerInScroll && !touched ? 0 : hitTest(x, y));
   }
 }
 

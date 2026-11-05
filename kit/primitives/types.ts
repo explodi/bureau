@@ -162,6 +162,11 @@ export interface BoxProps extends Layout, Access {
    * (`released` says which), for a key that acts while it is held.
    */
   onHoldChange?: (held: boolean, released: boolean) => void;
+  /**
+   * The pointer entered or left the box. Inside a Scroll, a finger enters only
+   * once it lifts without travelling or rests for 250 ms: a scroll enters
+   * nothing. Hover and focus both wait for that.
+   */
   onHoverChange?: (inside: boolean) => void;
   onFocusChange?: (focused: boolean) => void;
   onKey?: (key: KeyEvent) => boolean;

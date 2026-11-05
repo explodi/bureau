@@ -2245,6 +2245,188 @@ TEST_CASE("a touch scroll starting on a Key coasts without activating the Key") 
   CHECK_FALSE(fixture.view.animating());
 }
 
+/** A 100-point list scrolling five 40-point rows: 2 at y 0, 3 at 40, 4 at 80. */
+Stream listOfRows() {
+  const Json row = {{"height", 40}, {"shrink", 0}, {"focusable", true},
+                    {"onHoverChange", true}, {"onHoverMove", true},
+                    {"onFocusChange", true}, {"onPress", true}};
+  return Stream()
+      .create(1, "bureau-scroll", {{"width", 100}, {"height", 100},
+                                   {"direction", "column"}})
+      .create(2, "bureau-box", row).create(3, "bureau-box", row)
+      .create(4, "bureau-box", row).create(5, "bureau-box", row)
+      .create(6, "bureau-box", row)
+      .append(1, 2).append(1, 3).append(1, 4).append(1, 5).append(1, 6)
+      .append(0, 1);
+}
+
+bureau::PointerEvent finger(bureau::PointerEvent::Kind kind, float y) {
+  bureau::PointerEvent event{kind, 30, y};
+  event.touch = true;
+  return event;
+}
+
+TEST_CASE("a finger scrolling a list hovers and focuses none of its rows") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 90));
+  fixture.view.frame(16);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 50));
+  fixture.view.frame(32);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 10));
+  CHECK(fixture.rect(2).y == -80);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 10));
+  CHECK(fixture.handled("onHoverChange").empty());
+  CHECK(fixture.handled("onHoverMove").empty());
+  CHECK(fixture.handled("onFocusChange").empty());
+}
+
+TEST_CASE("a finger lifted where it landed hovers and focuses its row") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  CHECK(fixture.handled("onHoverChange").empty());
+  CHECK(fixture.handled("onFocusChange").empty());
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 50));
+  REQUIRE(fixture.handled("onHoverChange").size() == 1);
+  CHECK(fixture.handled("onHoverChange").front().node == 3);
+  CHECK(fixture.handled("onHoverChange").front().args == Json::array({true}));
+  REQUIRE(fixture.handled("onFocusChange").size() == 1);
+  CHECK(fixture.handled("onFocusChange").front().node == 3);
+  CHECK(fixture.handled("onPress").size() == 1);
+}
+
+TEST_CASE("a finger lifted where it landed reads what is under it") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 50));
+  REQUIRE(fixture.handled("onHoverMove").size() == 1);
+  CHECK(fixture.handled("onHoverMove").front().args[0] ==
+        Json{{"x", 30}, {"y", 10}});
+}
+
+TEST_CASE("a finger resting on a list hovers its row once the rest is long enough") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(1000);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  CHECK(fixture.view.animating());
+  fixture.view.frame(1249);
+  CHECK(fixture.handled("onHoverChange").empty());
+  fixture.view.frame(1250);
+  REQUIRE(fixture.handled("onHoverChange").size() == 1);
+  CHECK(fixture.handled("onHoverChange").front().node == 3);
+  CHECK_FALSE(fixture.view.animating());
+}
+
+TEST_CASE("a resting finger that sets off still scrolls, and drops its hover") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  fixture.view.frame(250);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 10));
+  CHECK(fixture.rect(2).y == -40);
+  CHECK(fixture.handled("onHoverChange").back().args == Json::array({false}));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 10));
+  CHECK(fixture.handled("onHoverChange").size() == 2);
+}
+
+TEST_CASE("a finger's small tremble while it lands is still a touch") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 47));
+  CHECK(fixture.handled("onHoverChange").empty());
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 47));
+  CHECK(fixture.handled("onHoverChange").size() == 1);
+  CHECK(fixture.handled("onPress").size() == 1);
+}
+
+TEST_CASE("a finger stopping a coasting list taps and hovers nothing") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 90));
+  fixture.view.frame(16);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 60));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 60));
+  fixture.view.frame(32);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  fixture.view.frame(600);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 50));
+  CHECK(fixture.handled("onHoverChange").empty());
+  CHECK(fixture.handled("onPress").empty());
+}
+
+TEST_CASE("a finger landing outside a coasting list still presses") {
+  Fixture fixture;
+  fixture.commit(Stream()
+    .create(1, "bureau-scroll", {{"width", 100}, {"height", 100}})
+    .create(2, "bureau-box", {{"height", 1000}, {"shrink", 0}})
+    .create(3, "bureau-box", {{"width", 40}, {"height", 40}, {"onPress", true}})
+    .append(1, 2).append(0, 1).append(0, 3));
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 90));
+  fixture.view.frame(16);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 60));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 60));
+  fixture.view.frame(32);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 110));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 110));
+  CHECK(fixture.handled("onPress").size() == 1);
+}
+
+TEST_CASE("a cancelled finger hovers and focuses nothing") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Cancel, 50));
+  CHECK(fixture.handled("onHoverChange").empty());
+  CHECK(fixture.handled("onFocusChange").empty());
+}
+
+TEST_CASE("the last tap's hover outlasts a new finger until that finger travels") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Up, 50));
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 50));
+  CHECK(fixture.handled("onHoverChange").size() == 1);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 20));
+  CHECK(fixture.handled("onHoverChange").back().args == Json::array({false}));
+}
+
+TEST_CASE("a mouse hovers and focuses a list's rows as it arrives") {
+  Fixture fixture;
+  fixture.commit(listOfRows());
+  fixture.view.frame(0);
+  fixture.view.pointer({bureau::PointerEvent::Kind::Move, 30, 50});
+  CHECK(fixture.handled("onHoverChange").front().node == 3);
+  fixture.view.pointer({bureau::PointerEvent::Kind::Down, 30, 50});
+  CHECK(fixture.handled("onFocusChange").front().node == 3);
+}
+
+TEST_CASE("a finger outside any Scroll hovers as it lands and as it slides") {
+  const Json row = {{"width", 40}, {"height", 40}, {"onHoverChange", true}};
+  Fixture fixture;
+  fixture.commit(Stream()
+    .create(1, "bureau-box", row).create(2, "bureau-box", row)
+    .append(0, 1).append(0, 2));
+  fixture.view.frame(0);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Down, 10));
+  CHECK(fixture.handled("onHoverChange").back().node == 1);
+  fixture.view.pointer(finger(bureau::PointerEvent::Kind::Move, 50));
+  CHECK(fixture.handled("onHoverChange").back().node == 2);
+}
+
 TEST_CASE("a vertical scrollbar thumb maps its travel to the content range") {
   Fixture fixture;
   fixture.commit(Stream()

@@ -514,6 +514,7 @@ bool View::frame(double nowMs) {
   nowMs_ = nowMs;
   coastScroll(elapsedMs);
   repeatScrollbar();
+  settleRestingFinger();
   if (counting_) layoutDirty_ = true;
   ensureLayout();
   const bool isRepaintDue = nowMs_ >= repaintAtMs_;
