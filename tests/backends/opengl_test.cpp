@@ -26,7 +26,7 @@ struct Context {
     const CGLPixelFormatAttribute attributes[] = {
         kCGLPFAOpenGLProfile,
         static_cast<CGLPixelFormatAttribute>(kCGLOGLPVersion_3_2_Core),
-        kCGLPFAAccelerated, static_cast<CGLPixelFormatAttribute>(0)};
+        static_cast<CGLPixelFormatAttribute>(0)};
     CGLPixelFormatObj format = nullptr;
     GLint count = 0;
     REQUIRE(CGLChoosePixelFormat(attributes, &format, &count) == kCGLNoError);
