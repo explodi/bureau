@@ -1,0 +1,48 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1",
+    "@std/encoding/hex": "jsr:@std/encoding@^1/hex",
+    "@std/path": "jsr:@std/path@^1",
+    "platform": "./kit/test_platform.ts",
+    "bureau/host": "./kit/primitives/test_host.ts",
+    "bureau/jsx-runtime": "./kit/primitives/jsx-runtime.ts",
+    "bureau/primitives": "./kit/primitives/primitives.ts",
+    "bureau/pad_actions": "./kit/input/pad_actions.ts",
+    "bureau/kit/": "./kit/"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "bureau",
+    "lib": [
+      "esnext",
+      "deno.window",
+      "deno.unstable"
+    ],
+    "types": [
+      "npm:@types/react@19",
+      "./kit/native_runtime.d.ts"
+    ]
+  },
+  "tasks": {
+    "hermes": "deno run --allow-read --allow-write --allow-net --allow-run --allow-env tools/fetch_hermes.ts",
+    "bundle": "deno run -A tools/bundle.ts",
+    "bundle:tests": "deno task bundle tests/bundles/literal_entry.tsx bundles/literal && deno task bundle tests/bundles/closure_entry.tsx bundles/closure && deno task bundle tests/bundles/unicode_entry.tsx bundles/unicode && deno task bundle tests/bundles/hello_entry.tsx bundles/hello",
+    "tokens": "deno run --allow-read --allow-write tools/tokens.ts",
+    "check": "deno check kit tools tests/bundles",
+    "test": "deno test --allow-all --no-check --sanitize-ops --sanitize-resources kit tools"
+  },
+  "lint": {
+    "plugins": [
+      "./kit/bureau_lint_plugin.ts"
+    ]
+  },
+  "fmt": {
+    "exclude": [
+      "**/*.svg"
+    ],
+    "proseWrap": "preserve"
+  }
+}

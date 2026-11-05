@@ -1,0 +1,60 @@
+{
+  "name": "hermes",
+  "version": "260318099.0.4",
+  "tag": "hermes-v260318099.0.4",
+  "commit": "d412d3bd851278712c20cca25d094e32641a0465",
+  "reactNative": "0.88.0",
+  "react": "19.3.0",
+  "reactReconciler": "0.34.0",
+  "urlBase": "https://repo1.maven.org/maven2/com/facebook/hermes/hermes-ios/260318099.0.4",
+  "compiler": {
+    "urlBase": "https://registry.npmjs.org/hermes-compiler/-",
+    "file": "hermes-compiler-260318099.0.4.tgz",
+    "sha256": "613b6230cf796bd1b6a8248e2cf8fb2799a5be92d23d49e96ee0b68dc2bfdcf2",
+    "unpack": "compiler",
+    "bytecodeVersion": 99,
+    "hosts": {
+      "darwin-aarch64": "package/hermesc/osx-bin/hermesc",
+      "darwin-x86_64": "package/hermesc/osx-bin/hermesc",
+      "linux-x86_64": "package/hermesc/linux64-bin/hermesc",
+      "windows-x86_64": "package/hermesc/win64-bin/hermesc.exe"
+    }
+  },
+  "assets": [
+    {
+      "file": "hermes-ios-260318099.0.4-hermes-ios-release.tar.gz",
+      "sha256": "b0db43628abc20b5eccb7ed1161801f418830f47b1ac1b5946cf532a886841f6",
+      "unpack": "release"
+    },
+    {
+      "file": "hermes-ios-260318099.0.4-hermes-ios-debug.tar.gz",
+      "sha256": "293b327565663e734f97082bad331f3e43a4422d6eab07061346027a394ecdc0",
+      "unpack": "debug"
+    },
+    {
+      "file": "hermes-ios-260318099.0.4-hermes-framework-dSYM-release.tar.gz",
+      "sha256": "6317218bdd3b867f5504eb4872e0cb723c3f67764d74382f168b9dc52cf9bd03",
+      "unpack": "dsym-release",
+      "dsym": true
+    },
+    {
+      "file": "hermes-ios-260318099.0.4-hermes-framework-dSYM-debug.tar.gz",
+      "sha256": "d4d9ae4d5f0e2bf980212a5a2d4e8d2817642b36a81508be4d61ce45da0a3169",
+      "unpack": "dsym-debug",
+      "dsym": true
+    }
+  ],
+  "source": {
+    "urlBase": "https://codeload.github.com/facebook/hermes/tar.gz",
+    "file": "d412d3bd851278712c20cca25d094e32641a0465",
+    "sha256": "be7fadbb2ef66f97bfba3d52de183823cbcc95f7b634ea0f8b19018a67b4daf7",
+    "unpack": "source"
+  },
+  "icu": {
+    "version": "76.1",
+    "urlBase": "https://github.com/unicode-org/icu/releases/download/release-76-1",
+    "file": "icu4c-76_1-src.tgz",
+    "sha256": "dfacb46bfe4747410472ce3e1144bf28a102feeaa4e3875bac9b4c6cf30f4f3e",
+    "unpack": "icu-source"
+  }
+}

@@ -1,0 +1,5 @@
+# Text is LF in the repository and in every checkout, whatever core.autocrlf says.
+* text=auto eol=lf
+
+# The package to vendor (.github/workflows/package.yml) leaves these out.
+.github export-ignore

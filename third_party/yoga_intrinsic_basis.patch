@@ -1,0 +1,19 @@
+diff --git a/yoga/algorithm/CalculateLayout.cpp b/yoga/algorithm/CalculateLayout.cpp
+--- a/yoga/algorithm/CalculateLayout.cpp
++++ b/yoga/algorithm/CalculateLayout.cpp
+@@ -87,8 +87,14 @@ static void computeFlexBasisForChild(
+   SizingMode childWidthSizingMode;
+   SizingMode childHeightSizingMode;
+
++  // CSS Flexbox 7.2.3: an indefinite percentage basis uses content.
++  const SizingMode mainAxisSizingMode = isMainAxisRow ? widthMode : heightMode;
++  const bool intrinsicPercentageBasis =
++      child->style().flexBasis().unit() == Unit::Percent &&
++      mainAxisSizingMode != SizingMode::StretchFit;
+   const FloatOptional resolvedFlexBasis = child->resolveFlexBasis(
+-      direction, mainAxis, mainAxisOwnerSize, ownerWidth);
++      direction, mainAxis,
++      intrinsicPercentageBasis ? YGUndefined : mainAxisOwnerSize, ownerWidth);
+   const bool isRowStyleDimDefined =
+       child->hasDefiniteLength(Dimension::Width, ownerWidth);
+   const bool isColumnStyleDimDefined =

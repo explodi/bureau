@@ -1,0 +1,24 @@
+diff --git a/yoga/algorithm/CalculateLayout.cpp b/yoga/algorithm/CalculateLayout.cpp
+--- a/yoga/algorithm/CalculateLayout.cpp
++++ b/yoga/algorithm/CalculateLayout.cpp
+@@ -162,7 +162,6 @@ static void computeFlexBasisForChild(
+-    // The W3C spec doesn't say anything about the 'overflow' property, but all
+-    // major browsers appear to implement the following logic.
+-    if ((!isMainAxisRow && node->style().overflow() == Overflow::Scroll) ||
+-        node->style().overflow() != Overflow::Scroll) {
++    // CSS Flexbox 9.2: an automatic flex basis measures max-content on the
++    // main axis; only the cross axis is constrained before flexing.
++    if (!isMainAxisRow) {
+       if (yoga::isUndefined(childWidth) && yoga::isDefined(width)) {
+         childWidth = width;
+         childWidthSizingMode = SizingMode::FitContent;
+@@ -173,8 +172,7 @@ static void computeFlexBasisForChild(
+       }
+     }
+
+-    if ((isMainAxisRow && node->style().overflow() == Overflow::Scroll) ||
+-        node->style().overflow() != Overflow::Scroll) {
++    if (isMainAxisRow) {
+       if (yoga::isUndefined(childHeight) && yoga::isDefined(height)) {
+         childHeight = height;
+         childHeightSizingMode = SizingMode::FitContent;

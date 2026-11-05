@@ -1,0 +1,1410 @@
+[
+  {
+    "locale": "de",
+    "number": "1.234.567,89",
+    "money": "-1.234,50 $",
+    "date": "5.4.2025",
+    "fullDate": "Samstag, 5. April 2025",
+    "percent": "15,3 %",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "en",
+    "number": "1,234,567.89",
+    "money": "-$1,234.50",
+    "date": "4/5/2025",
+    "fullDate": "Saturday, April 5, 2025",
+    "percent": "15.3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "two"
+      },
+      {
+        "value": 3,
+        "expected": "few"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "one"
+      },
+      {
+        "value": 22,
+        "expected": "two"
+      },
+      {
+        "value": 23,
+        "expected": "few"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "es",
+    "number": "1.234.567,89",
+    "money": "-1234,50 US$",
+    "date": "5/4/2025",
+    "fullDate": "sábado, 5 de abril de 2025",
+    "percent": "15,3 %",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "fr",
+    "number": "1 234 567,89",
+    "money": "-1 234,50 $US",
+    "date": "05/04/2025",
+    "fullDate": "samedi 5 avril 2025",
+    "percent": "15,3 %",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "one"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "one"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "it",
+    "number": "1.234.567,89",
+    "money": "-1234,50 USD",
+    "date": "05/04/2025",
+    "fullDate": "sabato 5 aprile 2025",
+    "percent": "15,3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "many"
+      },
+      {
+        "value": 11,
+        "expected": "many"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "many"
+      },
+      {
+        "value": 800,
+        "expected": "many"
+      }
+    ]
+  },
+  {
+    "locale": "ja",
+    "number": "1,234,567.89",
+    "money": "-$1,234.50",
+    "date": "2025/4/5",
+    "fullDate": "2025年4月5日土曜日",
+    "percent": "15.3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "ko",
+    "number": "1,234,567.89",
+    "money": "-US$1,234.50",
+    "date": "2025. 4. 5.",
+    "fullDate": "2025년 4월 5일 토요일",
+    "percent": "15.3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "pl",
+    "number": "1 234 567,89",
+    "money": "-1234,50 USD",
+    "date": "5.04.2025",
+    "fullDate": "sobota, 5 kwietnia 2025",
+    "percent": "15,3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "many"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "few"
+      },
+      {
+        "value": 5,
+        "expected": "many"
+      },
+      {
+        "value": 11,
+        "expected": "many"
+      },
+      {
+        "value": 21,
+        "expected": "many"
+      },
+      {
+        "value": 22,
+        "expected": "few"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "pt",
+    "number": "1.234.567,89",
+    "money": "-US$ 1.234,50",
+    "date": "05/04/2025",
+    "fullDate": "sábado, 5 de abril de 2025",
+    "percent": "15,3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "one"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "one"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "tr",
+    "number": "1.234.567,89",
+    "money": "-$1.234,50",
+    "date": "05.04.2025",
+    "fullDate": "5 Nisan 2025 Cumartesi",
+    "percent": "%15,3",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "zh",
+    "number": "1,234,567.89",
+    "money": "-US$1,234.50",
+    "date": "2025/4/5",
+    "fullDate": "2025年4月5日星期六",
+    "percent": "15.3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "fi",
+    "number": "1 234 567,89",
+    "money": "−1 234,50 $",
+    "date": "5.4.2025",
+    "fullDate": "lauantaina 5. huhtikuuta 2025",
+    "percent": "15,3 %",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "nl",
+    "number": "1.234.567,89",
+    "money": "US$ -1.234,50",
+    "date": "5-4-2025",
+    "fullDate": "zaterdag 5 april 2025",
+    "percent": "15,3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "ru",
+    "number": "1 234 567,89",
+    "money": "-1 234,50 $",
+    "date": "05.04.2025",
+    "fullDate": "суббота, 5 апреля 2025 г.",
+    "percent": "15,3 %",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "many"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "few"
+      },
+      {
+        "value": 5,
+        "expected": "many"
+      },
+      {
+        "value": 11,
+        "expected": "many"
+      },
+      {
+        "value": 21,
+        "expected": "one"
+      },
+      {
+        "value": 22,
+        "expected": "few"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "uk",
+    "number": "1 234 567,89",
+    "money": "-1 234,50 USD",
+    "date": "05.04.2025",
+    "fullDate": "субота, 5 квітня 2025 р.",
+    "percent": "15,3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "many"
+      },
+      {
+        "value": 1,
+        "expected": "one"
+      },
+      {
+        "value": 2,
+        "expected": "few"
+      },
+      {
+        "value": 5,
+        "expected": "many"
+      },
+      {
+        "value": 11,
+        "expected": "many"
+      },
+      {
+        "value": 21,
+        "expected": "one"
+      },
+      {
+        "value": 22,
+        "expected": "few"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "many"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "few"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "few"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  },
+  {
+    "locale": "zh-TW",
+    "number": "1,234,567.89",
+    "money": "-US$1,234.50",
+    "date": "2025/4/5",
+    "fullDate": "2025年4月5日 星期六",
+    "percent": "15.3%",
+    "plurals": [
+      {
+        "value": 0,
+        "expected": "other"
+      },
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 5,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 1.5,
+        "expected": "other"
+      },
+      {
+        "value": 1000000,
+        "expected": "other"
+      }
+    ],
+    "ordinals": [
+      {
+        "value": 1,
+        "expected": "other"
+      },
+      {
+        "value": 2,
+        "expected": "other"
+      },
+      {
+        "value": 3,
+        "expected": "other"
+      },
+      {
+        "value": 8,
+        "expected": "other"
+      },
+      {
+        "value": 11,
+        "expected": "other"
+      },
+      {
+        "value": 21,
+        "expected": "other"
+      },
+      {
+        "value": 22,
+        "expected": "other"
+      },
+      {
+        "value": 23,
+        "expected": "other"
+      },
+      {
+        "value": 80,
+        "expected": "other"
+      },
+      {
+        "value": 800,
+        "expected": "other"
+      }
+    ]
+  }
+]

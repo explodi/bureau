@@ -1,0 +1,8 @@
+# The pinned Hermes, downloaded per machine by `deno task hermes`.
+/third_party/hermes
+/build*/
+/bundles/
+/.cache/
+/compile_commands.json
+node_modules
+.DS_Store

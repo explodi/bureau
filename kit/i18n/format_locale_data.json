@@ -1,0 +1,5575 @@
+{
+  "en": {
+    "decimal": ".",
+    "group": ",",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "${number}",
+      "negative": "-${number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number}M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number}M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number}M"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number}B"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number}B"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number}B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}T"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 8
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December"
+        ],
+        "weekdays": [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "en-GB": {
+    "decimal": ".",
+    "group": ",",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "US${number}",
+      "negative": "-US${number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number}k"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}k"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}k"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number}m"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number}m"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number}m"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number}bn"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number}bn"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number}bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}tn"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 8
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December"
+        ],
+        "weekdays": [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sept",
+          "Oct",
+          "Nov",
+          "Dec"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "de": {
+    "decimal": ",",
+    "group": ".",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} $",
+      "negative": "-{number} $"
+    },
+    "percent": {
+      "positive": "{number} %",
+      "negative": "-{number} %"
+    },
+    "compact": [
+      {
+        "exponent": 0,
+        "pattern": "{number}"
+      },
+      {
+        "exponent": 0,
+        "pattern": "{number}"
+      },
+      {
+        "exponent": 0,
+        "pattern": "{number}"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mio."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mio."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mio."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mrd."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mrd."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mrd."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bio."
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Januar",
+          "Februar",
+          "März",
+          "April",
+          "Mai",
+          "Juni",
+          "Juli",
+          "August",
+          "September",
+          "Oktober",
+          "November",
+          "Dezember"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 7
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Januar",
+          "Februar",
+          "März",
+          "April",
+          "Mai",
+          "Juni",
+          "Juli",
+          "August",
+          "September",
+          "Oktober",
+          "November",
+          "Dezember"
+        ],
+        "weekdays": [
+          "Sonntag",
+          "Montag",
+          "Dienstag",
+          "Mittwoch",
+          "Donnerstag",
+          "Freitag",
+          "Samstag"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Januar",
+          "Februar",
+          "März",
+          "April",
+          "Mai",
+          "Juni",
+          "Juli",
+          "August",
+          "September",
+          "Oktober",
+          "November",
+          "Dezember"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 4
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Jan.",
+          "Feb.",
+          "März",
+          "Apr.",
+          "Mai",
+          "Juni",
+          "Juli",
+          "Aug.",
+          "Sept.",
+          "Okt.",
+          "Nov.",
+          "Dez."
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "es": {
+    "decimal": ",",
+    "group": ".",
+    "minimumGroupingDigits": 5,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} US$",
+      "negative": "-{number} US$"
+    },
+    "percent": {
+      "positive": "{number} %",
+      "negative": "-{number} %"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mil M"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mil M"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} B"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre"
+        ],
+        "weekdays": [
+          "domingo",
+          "lunes",
+          "martes",
+          "miércoles",
+          "jueves",
+          "viernes",
+          "sábado"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "ene",
+          "feb",
+          "mar",
+          "abr",
+          "may",
+          "jun",
+          "jul",
+          "ago",
+          "sept",
+          "oct",
+          "nov",
+          "dic"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "fr": {
+    "decimal": ",",
+    "group": " ",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} $US",
+      "negative": "-{number} $US"
+    },
+    "percent": {
+      "positive": "{number} %",
+      "negative": "-{number} %"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} k"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} k"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} k"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Md"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Md"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Md"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bn"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janvier",
+          "février",
+          "mars",
+          "avril",
+          "mai",
+          "juin",
+          "juillet",
+          "août",
+          "septembre",
+          "octobre",
+          "novembre",
+          "décembre"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janvier",
+          "février",
+          "mars",
+          "avril",
+          "mai",
+          "juin",
+          "juillet",
+          "août",
+          "septembre",
+          "octobre",
+          "novembre",
+          "décembre"
+        ],
+        "weekdays": [
+          "dimanche",
+          "lundi",
+          "mardi",
+          "mercredi",
+          "jeudi",
+          "vendredi",
+          "samedi"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janvier",
+          "février",
+          "mars",
+          "avril",
+          "mai",
+          "juin",
+          "juillet",
+          "août",
+          "septembre",
+          "octobre",
+          "novembre",
+          "décembre"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 4
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janv.",
+          "févr.",
+          "mars",
+          "avr.",
+          "mai",
+          "juin",
+          "juil.",
+          "août",
+          "sept.",
+          "oct.",
+          "nov.",
+          "déc."
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "it": {
+    "decimal": ",",
+    "group": ".",
+    "minimumGroupingDigits": 5,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} USD",
+      "negative": "-{number} USD"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mln"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mln"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mln"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mld"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mld"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mld"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bln"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "gennaio",
+          "febbraio",
+          "marzo",
+          "aprile",
+          "maggio",
+          "giugno",
+          "luglio",
+          "agosto",
+          "settembre",
+          "ottobre",
+          "novembre",
+          "dicembre"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "gennaio",
+          "febbraio",
+          "marzo",
+          "aprile",
+          "maggio",
+          "giugno",
+          "luglio",
+          "agosto",
+          "settembre",
+          "ottobre",
+          "novembre",
+          "dicembre"
+        ],
+        "weekdays": [
+          "domenica",
+          "lunedì",
+          "martedì",
+          "mercoledì",
+          "giovedì",
+          "venerdì",
+          "sabato"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "gennaio",
+          "febbraio",
+          "marzo",
+          "aprile",
+          "maggio",
+          "giugno",
+          "luglio",
+          "agosto",
+          "settembre",
+          "ottobre",
+          "novembre",
+          "dicembre"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "gen",
+          "feb",
+          "mar",
+          "apr",
+          "mag",
+          "giu",
+          "lug",
+          "ago",
+          "set",
+          "ott",
+          "nov",
+          "dic"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "ja": {
+    "decimal": ".",
+    "group": ",",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "${number}",
+      "negative": "-${number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 0,
+        "pattern": "{number}"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 16,
+        "pattern": "{number}京"
+      },
+      {
+        "exponent": 16,
+        "pattern": "{number}京"
+      },
+      {
+        "exponent": 16,
+        "pattern": "{number}京"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 1
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 2
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "日"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "日"
+          },
+          {
+            "field": "weekday",
+            "width": 3
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": [
+          "日曜日",
+          "月曜日",
+          "火曜日",
+          "水曜日",
+          "木曜日",
+          "金曜日",
+          "土曜日"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "ko": {
+    "decimal": ".",
+    "group": ",",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "US${number}",
+      "negative": "-US${number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number}천"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}만"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}만"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}만"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}만"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}억"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}억"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}억"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}억"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}조"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "."
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "년 "
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "일"
+          }
+        ],
+        "months": [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "년 "
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "일 "
+          },
+          {
+            "field": "weekday",
+            "width": 3
+          }
+        ],
+        "months": [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월"
+        ],
+        "weekdays": [
+          "일요일",
+          "월요일",
+          "화요일",
+          "수요일",
+          "목요일",
+          "금요일",
+          "토요일"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "년 "
+          },
+          {
+            "field": "month",
+            "width": 2
+          }
+        ],
+        "months": [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "년 "
+          },
+          {
+            "field": "month",
+            "width": 2
+          }
+        ],
+        "months": [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "pl": {
+    "decimal": ",",
+    "group": " ",
+    "minimumGroupingDigits": 5,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} USD",
+      "negative": "-{number} USD"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} tys."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} tys."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} tys."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mln"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mln"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mln"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mld"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mld"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mld"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 8
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "stycznia",
+          "lutego",
+          "marca",
+          "kwietnia",
+          "maja",
+          "czerwca",
+          "lipca",
+          "sierpnia",
+          "września",
+          "października",
+          "listopada",
+          "grudnia"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 8
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "stycznia",
+          "lutego",
+          "marca",
+          "kwietnia",
+          "maja",
+          "czerwca",
+          "lipca",
+          "sierpnia",
+          "września",
+          "października",
+          "listopada",
+          "grudnia"
+        ],
+        "weekdays": [
+          "niedziela",
+          "poniedziałek",
+          "wtorek",
+          "środa",
+          "czwartek",
+          "piątek",
+          "sobota"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 8
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "styczeń",
+          "luty",
+          "marzec",
+          "kwiecień",
+          "maj",
+          "czerwiec",
+          "lipiec",
+          "sierpień",
+          "wrzesień",
+          "październik",
+          "listopad",
+          "grudzień"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "sty",
+          "lut",
+          "mar",
+          "kwi",
+          "maj",
+          "cze",
+          "lip",
+          "sie",
+          "wrz",
+          "paź",
+          "lis",
+          "gru"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "pt": {
+    "decimal": ",",
+    "group": ".",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "US$ {number}",
+      "negative": "-US$ {number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mi"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mi"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mi"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} bi"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} bi"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} tri"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janeiro",
+          "fevereiro",
+          "março",
+          "abril",
+          "maio",
+          "junho",
+          "julho",
+          "agosto",
+          "setembro",
+          "outubro",
+          "novembro",
+          "dezembro"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janeiro",
+          "fevereiro",
+          "março",
+          "abril",
+          "maio",
+          "junho",
+          "julho",
+          "agosto",
+          "setembro",
+          "outubro",
+          "novembro",
+          "dezembro"
+        ],
+        "weekdays": [
+          "domingo",
+          "segunda-feira",
+          "terça-feira",
+          "quarta-feira",
+          "quinta-feira",
+          "sexta-feira",
+          "sábado"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janeiro",
+          "fevereiro",
+          "março",
+          "abril",
+          "maio",
+          "junho",
+          "julho",
+          "agosto",
+          "setembro",
+          "outubro",
+          "novembro",
+          "dezembro"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 4
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "jan.",
+          "fev.",
+          "mar.",
+          "abr.",
+          "mai.",
+          "jun.",
+          "jul.",
+          "ago.",
+          "set.",
+          "out.",
+          "nov.",
+          "dez."
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "pt-PT": {
+    "decimal": ",",
+    "group": " ",
+    "minimumGroupingDigits": 5,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} US$",
+      "negative": "-{number} US$"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} mil"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} M"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mM"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mM"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mM"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Bi"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janeiro",
+          "fevereiro",
+          "março",
+          "abril",
+          "maio",
+          "junho",
+          "julho",
+          "agosto",
+          "setembro",
+          "outubro",
+          "novembro",
+          "dezembro"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janeiro",
+          "fevereiro",
+          "março",
+          "abril",
+          "maio",
+          "junho",
+          "julho",
+          "agosto",
+          "setembro",
+          "outubro",
+          "novembro",
+          "dezembro"
+        ],
+        "weekdays": [
+          "domingo",
+          "segunda-feira",
+          "terça-feira",
+          "quarta-feira",
+          "quinta-feira",
+          "sexta-feira",
+          "sábado"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " de "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "janeiro",
+          "fevereiro",
+          "março",
+          "abril",
+          "maio",
+          "junho",
+          "julho",
+          "agosto",
+          "setembro",
+          "outubro",
+          "novembro",
+          "dezembro"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "tr": {
+    "decimal": ",",
+    "group": ".",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "${number}",
+      "negative": "-${number}"
+    },
+    "percent": {
+      "positive": "%{number}",
+      "negative": "-%{number}"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} B"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mn"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mn"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} Mn"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mr"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mr"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} Mr"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} Tn"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Ocak",
+          "Şubat",
+          "Mart",
+          "Nisan",
+          "Mayıs",
+          "Haziran",
+          "Temmuz",
+          "Ağustos",
+          "Eylül",
+          "Ekim",
+          "Kasım",
+          "Aralık"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "weekday",
+            "width": 9
+          }
+        ],
+        "months": [
+          "Ocak",
+          "Şubat",
+          "Mart",
+          "Nisan",
+          "Mayıs",
+          "Haziran",
+          "Temmuz",
+          "Ağustos",
+          "Eylül",
+          "Ekim",
+          "Kasım",
+          "Aralık"
+        ],
+        "weekdays": [
+          "Pazar",
+          "Pazartesi",
+          "Salı",
+          "Çarşamba",
+          "Perşembe",
+          "Cuma",
+          "Cumartesi"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Ocak",
+          "Şubat",
+          "Mart",
+          "Nisan",
+          "Mayıs",
+          "Haziran",
+          "Temmuz",
+          "Ağustos",
+          "Eylül",
+          "Ekim",
+          "Kasım",
+          "Aralık"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "Oca",
+          "Şub",
+          "Mar",
+          "Nis",
+          "May",
+          "Haz",
+          "Tem",
+          "Ağu",
+          "Eyl",
+          "Eki",
+          "Kas",
+          "Ara"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "zh": {
+    "decimal": ".",
+    "group": ",",
+    "minimumGroupingDigits": 4,
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "US${number}",
+      "negative": "-US${number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 0,
+        "pattern": "{number}"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}万"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}亿"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}亿"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}亿"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}万亿"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 1
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 2
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "日"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "日"
+          },
+          {
+            "field": "weekday",
+            "width": 3
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": [
+          "星期日",
+          "星期一",
+          "星期二",
+          "星期三",
+          "星期四",
+          "星期五",
+          "星期六"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "fi": {
+    "decimal": ",",
+    "group": " ",
+    "minimumGroupingDigits": 4,
+    "minus": "−",
+    "nan": "epäluku",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} $",
+      "negative": "−{number} $"
+    },
+    "percent": {
+      "positive": "{number} %",
+      "negative": "−{number} %"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} t."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} t."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} t."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} milj."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} milj."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} milj."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mrd."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mrd."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mrd."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bilj."
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "month",
+            "width": 10
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "tammikuuta",
+          "helmikuuta",
+          "maaliskuuta",
+          "huhtikuuta",
+          "toukokuuta",
+          "kesäkuuta",
+          "heinäkuuta",
+          "elokuuta",
+          "syyskuuta",
+          "lokakuuta",
+          "marraskuuta",
+          "joulukuuta"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 10
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": ". "
+          },
+          {
+            "field": "month",
+            "width": 10
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "tammikuuta",
+          "helmikuuta",
+          "maaliskuuta",
+          "huhtikuuta",
+          "toukokuuta",
+          "kesäkuuta",
+          "heinäkuuta",
+          "elokuuta",
+          "syyskuuta",
+          "lokakuuta",
+          "marraskuuta",
+          "joulukuuta"
+        ],
+        "weekdays": [
+          "sunnuntai",
+          "maanantaina",
+          "tiistaina",
+          "keskiviikkona",
+          "torstaina",
+          "perjantaina",
+          "lauantaina"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 8
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "tammikuu",
+          "helmikuu",
+          "maaliskuu",
+          "huhtikuu",
+          "toukokuu",
+          "kesäkuu",
+          "heinäkuu",
+          "elokuu",
+          "syyskuu",
+          "lokakuu",
+          "marraskuu",
+          "joulukuu"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "tammi",
+          "helmi",
+          "maalis",
+          "huhti",
+          "touko",
+          "kesä",
+          "heinä",
+          "elo",
+          "syys",
+          "loka",
+          "marras",
+          "joulu"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "nl": {
+    "decimal": ",",
+    "group": ".",
+    "minimumGroupingDigits": 4,
+    "minus": "-",
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "US$ {number}",
+      "negative": "US$ -{number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number}K"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mln."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mln."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} mln."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mld."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mld."
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} mld."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} bln."
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "-"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "-"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "-"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "-"
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "januari",
+          "februari",
+          "maart",
+          "april",
+          "mei",
+          "juni",
+          "juli",
+          "augustus",
+          "september",
+          "oktober",
+          "november",
+          "december"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 8
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "januari",
+          "februari",
+          "maart",
+          "april",
+          "mei",
+          "juni",
+          "juli",
+          "augustus",
+          "september",
+          "oktober",
+          "november",
+          "december"
+        ],
+        "weekdays": [
+          "zondag",
+          "maandag",
+          "dinsdag",
+          "woensdag",
+          "donderdag",
+          "vrijdag",
+          "zaterdag"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "januari",
+          "februari",
+          "maart",
+          "april",
+          "mei",
+          "juni",
+          "juli",
+          "augustus",
+          "september",
+          "oktober",
+          "november",
+          "december"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 3
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "jan",
+          "feb",
+          "mrt",
+          "apr",
+          "mei",
+          "jun",
+          "jul",
+          "aug",
+          "sep",
+          "okt",
+          "nov",
+          "dec"
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "ru": {
+    "decimal": ",",
+    "group": " ",
+    "minimumGroupingDigits": 4,
+    "minus": "-",
+    "nan": "не число",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} $",
+      "negative": "-{number} $"
+    },
+    "percent": {
+      "positive": "{number} %",
+      "negative": "-{number} %"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} тыс."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} тыс."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} тыс."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} млн"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} млн"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} млн"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} млрд"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} млрд"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} млрд"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " г."
+          }
+        ],
+        "months": [
+          "января",
+          "февраля",
+          "марта",
+          "апреля",
+          "мая",
+          "июня",
+          "июля",
+          "августа",
+          "сентября",
+          "октября",
+          "ноября",
+          "декабря"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 7
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " г."
+          }
+        ],
+        "months": [
+          "января",
+          "февраля",
+          "марта",
+          "апреля",
+          "мая",
+          "июня",
+          "июля",
+          "августа",
+          "сентября",
+          "октября",
+          "ноября",
+          "декабря"
+        ],
+        "weekdays": [
+          "воскресенье",
+          "понедельник",
+          "вторник",
+          "среда",
+          "четверг",
+          "пятница",
+          "суббота"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " г."
+          }
+        ],
+        "months": [
+          "январь",
+          "февраль",
+          "март",
+          "апрель",
+          "май",
+          "июнь",
+          "июль",
+          "август",
+          "сентябрь",
+          "октябрь",
+          "ноябрь",
+          "декабрь"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 4
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " г."
+          }
+        ],
+        "months": [
+          "янв.",
+          "февр.",
+          "март",
+          "апр.",
+          "май",
+          "июнь",
+          "июль",
+          "авг.",
+          "сент.",
+          "окт.",
+          "нояб.",
+          "дек."
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "uk": {
+    "decimal": ",",
+    "group": " ",
+    "minimumGroupingDigits": 4,
+    "minus": "-",
+    "nan": "NaN",
+    "infinity": "∞",
+    "currency": {
+      "positive": "{number} USD",
+      "negative": "-{number} USD"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 3,
+        "pattern": "{number} тис."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} тис."
+      },
+      {
+        "exponent": 3,
+        "pattern": "{number} тис."
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} млн"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} млн"
+      },
+      {
+        "exponent": 6,
+        "pattern": "{number} млн"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} млрд"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} млрд"
+      },
+      {
+        "exponent": 9,
+        "pattern": "{number} млрд"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number} трлн"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "."
+          },
+          {
+            "field": "year",
+            "width": 4
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " р."
+          }
+        ],
+        "months": [
+          "січня",
+          "лютого",
+          "березня",
+          "квітня",
+          "травня",
+          "червня",
+          "липня",
+          "серпня",
+          "вересня",
+          "жовтня",
+          "листопада",
+          "грудня"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "weekday",
+            "width": 6
+          },
+          {
+            "literal": ", "
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "month",
+            "width": 6
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " р."
+          }
+        ],
+        "months": [
+          "січня",
+          "лютого",
+          "березня",
+          "квітня",
+          "травня",
+          "червня",
+          "липня",
+          "серпня",
+          "вересня",
+          "жовтня",
+          "листопада",
+          "грудня"
+        ],
+        "weekdays": [
+          "неділя",
+          "понеділок",
+          "вівторок",
+          "середа",
+          "четвер",
+          "пʼятниця",
+          "субота"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 7
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " р."
+          }
+        ],
+        "months": [
+          "січень",
+          "лютий",
+          "березень",
+          "квітень",
+          "травень",
+          "червень",
+          "липень",
+          "серпень",
+          "вересень",
+          "жовтень",
+          "листопад",
+          "грудень"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "month",
+            "width": 5
+          },
+          {
+            "literal": " "
+          },
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": " р."
+          }
+        ],
+        "months": [
+          "січ.",
+          "лют.",
+          "бер.",
+          "квіт.",
+          "трав.",
+          "черв.",
+          "лип.",
+          "серп.",
+          "вер.",
+          "жовт.",
+          "лист.",
+          "груд."
+        ],
+        "weekdays": []
+      }
+    }
+  },
+  "zh-TW": {
+    "decimal": ".",
+    "group": ",",
+    "minimumGroupingDigits": 4,
+    "minus": "-",
+    "nan": "非數值",
+    "infinity": "∞",
+    "currency": {
+      "positive": "US${number}",
+      "negative": "-US${number}"
+    },
+    "percent": {
+      "positive": "{number}%",
+      "negative": "-{number}%"
+    },
+    "compact": [
+      {
+        "exponent": 0,
+        "pattern": "{number}"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}萬"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}萬"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}萬"
+      },
+      {
+        "exponent": 4,
+        "pattern": "{number}萬"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 8,
+        "pattern": "{number}億"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      },
+      {
+        "exponent": 12,
+        "pattern": "{number}兆"
+      }
+    ],
+    "dates": {
+      "numeric": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 1
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "padded": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "month",
+            "width": 2
+          },
+          {
+            "literal": "/"
+          },
+          {
+            "field": "day",
+            "width": 2
+          }
+        ],
+        "months": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "long": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "日"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "full": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          },
+          {
+            "field": "day",
+            "width": 1
+          },
+          {
+            "literal": "日 "
+          },
+          {
+            "field": "weekday",
+            "width": 3
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": [
+          "星期日",
+          "星期一",
+          "星期二",
+          "星期三",
+          "星期四",
+          "星期五",
+          "星期六"
+        ]
+      },
+      "monthLong": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      },
+      "monthShort": {
+        "fields": [
+          {
+            "field": "year",
+            "width": 4
+          },
+          {
+            "literal": "年"
+          },
+          {
+            "field": "month",
+            "width": 1
+          },
+          {
+            "literal": "月"
+          }
+        ],
+        "months": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "weekdays": []
+      }
+    }
+  }
+}

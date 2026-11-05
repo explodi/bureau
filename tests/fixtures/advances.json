@@ -1,0 +1,105 @@
+{
+  "reference": "Native goldens (D52): each text shaped in its face (advance), its line set at max-content (layout), and its line's x centred and end-aligned in a 600px line",
+  "cases": [
+    {
+      "family": "Jersey25",
+      "size": 18,
+      "text": "A",
+      "advance": 8.780487060546875,
+      "layout": 8.78125,
+      "center": 295.609375,
+      "end": 591.21875,
+      "file": "Jersey25-Regular.ttf"
+    },
+    {
+      "family": "Diffusion Bold",
+      "size": 12,
+      "text": "string",
+      "advance": 43.199981689453125,
+      "layout": 43.203125,
+      "center": 278.390625,
+      "end": 556.796875,
+      "file": "diffusion-regular.ttf"
+    },
+    {
+      "family": "Diffusion Bold",
+      "size": 12,
+      "text": "AAAA AAAA AAAA AAAA",
+      "advance": 136.79994201660156,
+      "layout": 136.8125,
+      "center": 231.59375,
+      "end": 463.1875,
+      "file": "diffusion-regular.ttf"
+    },
+    {
+      "family": "IBM Plex Serif",
+      "size": 18,
+      "text": "AVATAR office",
+      "advance": 119.57392883300781,
+      "layout": 119.578125,
+      "center": 240.203125,
+      "end": 480.421875,
+      "file": "IBMPlexSerif-Regular.ttf"
+    },
+    {
+      "family": "WDXLLubrifont JPN",
+      "size": 18,
+      "text": "東京",
+      "advance": 27.53997802734375,
+      "layout": 27.546875,
+      "center": 286.21875,
+      "end": 572.453125,
+      "file": "WDXLLubrifontJPN-Regular.ttf"
+    },
+    {
+      "family": "WDXLLubrifont SC",
+      "size": 18,
+      "text": "北京",
+      "advance": 27.53997802734375,
+      "layout": 27.546875,
+      "center": 286.21875,
+      "end": 572.453125,
+      "file": "WDXLLubrifontSC-Regular.ttf"
+    },
+    {
+      "family": "IBM Plex Sans KR",
+      "size": 18,
+      "text": "서울",
+      "advance": 32.11199951171875,
+      "layout": 32.125,
+      "center": 283.9375,
+      "end": 567.875,
+      "file": "IBMPlexSansKR-Medium.ttf"
+    },
+    {
+      "family": "Jersey25",
+      "size": 14,
+      "text": "Footings, width and floor.",
+      "advance": 136.24368286132812,
+      "layout": 136.25,
+      "center": 231.875,
+      "end": 463.75,
+      "file": "Jersey25-Regular.ttf"
+    },
+    {
+      "family": "Jersey25",
+      "size": 12.5,
+      "text": "Scale and spacing.",
+      "advance": 89.02426147460938,
+      "layout": 89.03125,
+      "center": 255.484375,
+      "end": 510.96875,
+      "file": "Jersey25-Regular.ttf"
+    },
+    {
+      "family": "Diffusion Bold",
+      "size": 12,
+      "text": "string string string string string string string string string string",
+      "advance": 496.7997741699219,
+      "layout": 496.8125,
+      "center": 51.59375,
+      "end": 103.1875,
+      "file": "diffusion-regular.ttf"
+    }
+  ]
+}

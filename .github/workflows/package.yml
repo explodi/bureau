@@ -1,0 +1,75 @@
+# Each commit of main that passes its tests is published as a package to vendor:
+# a release holding bureau.tar.gz and bureau.json (its commit and SHA-256). GitHub's
+# own archives are made on demand and their bytes may change, so they cannot be
+# pinned by hash; a release's files stay as they were uploaded.
+name: Package
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.6
+
+      - name: Dependencies
+        run: |
+          brew install ninja
+          deno install --frozen
+
+      - name: Format, lint and types
+        run: |
+          deno fmt --check
+          deno lint
+          deno task check
+
+      - name: Kit's tests
+        run: deno task test
+
+      - name: Keep the pinned Hermes between runs
+        uses: actions/cache@v4
+        with:
+          path: third_party/hermes
+          key: hermes-${{ runner.os }}-${{ hashFiles('third_party/hermes.pin.json') }}
+
+      - name: Hermes
+        run: deno task hermes
+
+      - name: Test bundles
+        run: deno task bundle:tests
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja
+          cmake --build build
+
+      - name: C++ tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Package
+        run: |
+          git archive --format=tar.gz --prefix=bureau/ --output=bureau.tar.gz HEAD
+          sha256=$(shasum -a 256 bureau.tar.gz | cut -d' ' -f1)
+          printf '{\n  "commit": "%s",\n  "sha256": "%s"\n}\n' "$GITHUB_SHA" "$sha256" > bureau.json
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="main-$(git rev-parse --short=12 HEAD)"
+          gh release create "$tag" bureau.tar.gz bureau.json \
+            --target "$GITHUB_SHA" \
+            --title "$tag" \
+            --notes "$(git log -1 --format=%s)"
