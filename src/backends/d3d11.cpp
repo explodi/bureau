@@ -68,10 +68,10 @@ struct D3D11Backend::Impl {
     return sampler;
   }
 
-  void createPage() {
+  void createPage(int size) {
     D3D11_TEXTURE2D_DESC description{};
-    description.Width = kAtlasSize;
-    description.Height = kAtlasSize;
+    description.Width = size;
+    description.Height = size;
     description.MipLevels = 1;
     description.ArraySize = 1;
     description.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -177,7 +177,7 @@ void D3D11Backend::upload(ID3D11DeviceContext* context,
                           const std::vector<AtlasUpload>& uploads) {
   Impl& d3d = *impl_;
   for (const AtlasUpload& upload : uploads) {
-    while (static_cast<int>(d3d.pages.size()) <= upload.page) d3d.createPage();
+    while (static_cast<int>(d3d.pages.size()) <= upload.page) d3d.createPage(upload.pageSize);
     const D3D11_BOX box{static_cast<UINT>(upload.x),
                         static_cast<UINT>(upload.y),
                         0,

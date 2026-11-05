@@ -13,6 +13,11 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 option(BUREAU_BUILD_TESTS "Build Bureau's tests" ${PROJECT_IS_TOP_LEVEL})
 option(BUREAU_BACKENDS "Build the Metal, Vulkan, Direct3D and OpenGL backends" ON)
 option(BUREAU_INSPECTOR "Debug the UI's TSX in Chrome DevTools" OFF)
+option(BUREAU_APPLE_ANY_SDK
+  "One Xcode project builds for several Apple platforms: each app finds Hermes by its SDK (bureau_hermes_by_sdk)" OFF)
+if(BUREAU_APPLE_ANY_SDK AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+  message(FATAL_ERROR "BUREAU_APPLE_ANY_SDK needs the Xcode generator")
+endif()
 
 if(MSVC)
   # UTF-8 sources.
@@ -39,7 +44,7 @@ target_link_libraries(bureau_core PUBLIC
   yogacore freetype harfbuzz bureau_unibreak_lib bureau_stb_headers
   bureau_nanosvg_headers)
 if(APPLE)
-  target_link_libraries(bureau_core PUBLIC "-framework CoreText")
+  target_link_libraries(bureau_core PUBLIC "-framework CoreText" "-framework CoreFoundation")
 endif()
 if(MSVC)
   target_compile_options(bureau_core PRIVATE /W4 /EHs-c-)

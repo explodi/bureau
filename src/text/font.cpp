@@ -179,7 +179,7 @@ uint32_t Font::glyphFor(char32_t codePoint) const {
   return FT_Get_Char_Index(face_, codePoint);
 }
 
-RasterGlyph Font::raster(uint32_t glyphIndex, float subpixel) const {
+RasterGlyph Font::raster(uint32_t glyphIndex, float subpixel, bool monochrome) const {
   RasterGlyph glyph{};
   if (!valid()) return glyph;
   if (FT_Load_Glyph(face_, glyphIndex, kLoadFlags) != 0) return glyph;
@@ -187,9 +187,11 @@ RasterGlyph Font::raster(uint32_t glyphIndex, float subpixel) const {
     FT_Outline_Translate(&face_->glyph->outline,
                          static_cast<FT_Pos>(std::lround(subpixel * 64)), 0);
   }
-  if (FT_Render_Glyph(face_->glyph, FT_RENDER_MODE_NORMAL) != 0) return glyph;
+  const FT_Render_Mode mode = monochrome ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
+  if (FT_Render_Glyph(face_->glyph, mode) != 0) return glyph;
   const FT_Bitmap& bitmap = face_->glyph->bitmap;
-  if (bitmap.pixel_mode != FT_PIXEL_MODE_GRAY) return glyph;
+  const bool oneBit = bitmap.pixel_mode == FT_PIXEL_MODE_MONO;
+  if (!oneBit && bitmap.pixel_mode != FT_PIXEL_MODE_GRAY) return glyph;
   glyph.left = face_->glyph->bitmap_left;
   glyph.top = face_->glyph->bitmap_top;
   glyph.width = static_cast<int>(bitmap.width);
@@ -199,9 +201,16 @@ RasterGlyph Font::raster(uint32_t glyphIndex, float subpixel) const {
     const int sourceRow = bitmap.pitch >= 0
                               ? static_cast<int>(row)
                               : static_cast<int>(bitmap.rows - 1 - row);
-    std::memcpy(glyph.coverage.data() + row * bitmap.width,
-                bitmap.buffer + sourceRow * std::abs(bitmap.pitch),
-                bitmap.width);
+    const unsigned char* source = bitmap.buffer + sourceRow * std::abs(bitmap.pitch);
+    std::uint8_t* target = glyph.coverage.data() + row * bitmap.width;
+    if (!oneBit) {
+      std::memcpy(target, source, bitmap.width);
+      continue;
+    }
+    for (unsigned int column = 0; column < bitmap.width; ++column) {
+      const bool set = ((source[column / 8] >> (7 - column % 8)) & 1) != 0;
+      target[column] = set ? 255 : 0;
+    }
   }
   return glyph;
 }

@@ -1,5 +1,5 @@
-// The glyphs and pictures the UI draws, packed into pages of kAtlasSize
-// texels a side, premultiplied RGBA. Each page keeps its pixels, so a lost
+// The glyphs and pictures the UI draws, packed into square pages,
+// premultiplied RGBA. Each page keeps its pixels, so a lost
 // device's pages are written again whole; what changed since the last frame
 // goes out as uploads.
 #pragma once
@@ -27,7 +27,10 @@ struct AtlasEntry {
 
 class Atlas {
  public:
-  Atlas();
+  explicit Atlas(int size = kAtlasSize);
+
+  /** A page's side in texels. */
+  int size() const { return size_; }
 
   const AtlasEntry* find(const std::string& key) const;
   /** Packs `width` x `height` premultiplied RGBA under `key`; an existing
@@ -58,6 +61,7 @@ class Atlas {
   };
   bool place(Page& page, int width, int height, int& x, int& y);
 
+  int size_;
   std::vector<Page> pages_;
   std::map<std::string, AtlasEntry> entries_;
   std::vector<AtlasUpload> uploads_;

@@ -36,8 +36,14 @@ if(APPLE)
   if(EXISTS "${bureau_hermes_compiler}")
     add_library(bureau_hermes INTERFACE)
     target_include_directories(bureau_hermes SYSTEM INTERFACE "${bureau_hermes_root}/include")
-    target_link_libraries(bureau_hermes INTERFACE
-      "-F${bureau_hermes_framework_dir}" "-framework hermesvm")
+    if(BUREAU_APPLE_ANY_SDK)
+      # Configuring chose no SDK: bureau_hermes_by_sdk gives each app its slice.
+      target_link_libraries(bureau_hermes INTERFACE "-framework hermesvm")
+      set(BUREAU_HERMES_ROOT "${bureau_hermes_root}" CACHE INTERNAL "")
+    else()
+      target_link_libraries(bureau_hermes INTERFACE
+        "-F${bureau_hermes_framework_dir}" "-framework hermesvm")
+    endif()
   endif()
 elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
     OR (ANDROID AND ANDROID_ABI STREQUAL "arm64-v8a"))
@@ -110,3 +116,24 @@ elseif(WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$")
     target_compile_definitions(bureau_hermes INTERFACE HERMES_EXPORT= SHERMES_EXPORT=)
   endif()
 endif()
+
+# For an app of one Xcode project that builds for several Apple platforms
+# (BUREAU_APPLE_ANY_SDK). An app picks its SDK after configuring, so it finds Hermes
+# by that SDK when it builds, and carries a signed copy of that slice.
+function(bureau_hermes_by_sdk target)
+  set(frameworks "${BUREAU_HERMES_ROOT}/Library/Frameworks")
+  set(slices "${frameworks}/universal/hermesvm.xcframework")
+  set_target_properties(${target} PROPERTIES
+    "XCODE_ATTRIBUTE_BUREAU_HERMES_DIR[sdk=macosx*]" "${frameworks}/macosx"
+    "XCODE_ATTRIBUTE_BUREAU_HERMES_DIR[sdk=iphoneos*]" "${slices}/ios-arm64"
+    "XCODE_ATTRIBUTE_BUREAU_HERMES_DIR[sdk=iphonesimulator*]" "${slices}/ios-arm64_x86_64-simulator"
+    "XCODE_ATTRIBUTE_BUREAU_HERMES_DIR[sdk=appletvos*]" "${slices}/tvos-arm64"
+    "XCODE_ATTRIBUTE_BUREAU_HERMES_DIR[sdk=appletvsimulator*]" "${slices}/tvos-arm64_x86_64-simulator"
+    XCODE_ATTRIBUTE_FRAMEWORK_SEARCH_PATHS "$(BUREAU_HERMES_DIR)"
+    "XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" "@executable_path/../Frameworks"
+    "XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS[sdk=iphone*]" "@executable_path/Frameworks"
+    "XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS[sdk=appletv*]" "@executable_path/Frameworks")
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND /bin/sh "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/embed_hermes.sh"
+    VERBATIM)
+endfunction()

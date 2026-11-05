@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iterator>
+#include <set>
 #include <string>
 
 #include "anim.h"
@@ -2710,6 +2711,65 @@ Json ledger(int month) {
                     {"height", 8}, {"ink", "db32-black"}});
   }
   return {{"width", 760}, {"height", 260}, {"commands", dots}};
+}
+
+TEST_CASE("an atlas of another size gives coordinates in its own texels") {
+  Fixture fixture;
+  fixture.view.setAtlas(256, bureau::kAtlasPageBudget);
+  fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
+  fixture.view.frame(0);
+  const auto list = fixture.view.displayList();
+  REQUIRE(list->quads.size() == 1);
+  CHECK(list->quads[0].u0 == doctest::Approx(5.0 / 256));
+  CHECK(list->quads[0].u1 == doctest::Approx(17.0 / 256));
+  CHECK(list->quads[0].v1 == doctest::Approx(14.0 / 256));
+}
+
+/** The pages the atlas ends on after a chart is given new figures 100 times. */
+size_t pagesAfterNewFigures(Fixture& fixture) {
+  fixture.view.setViewport(1280, 800, 2);
+  fixture.commit(Stream().create(1, "bureau-plot", ledger(0)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  for (int month = 1; month < 100; ++month) {
+    fixture.commit(Stream().props(1, ledger(month)));
+    REQUIRE(fixture.view.frame(0));
+  }
+  return fixture.view.atlasPages().size();
+}
+
+TEST_CASE("a smaller page budget starts the atlas over sooner") {
+  Fixture usual(2);
+  CHECK(pagesAfterNewFigures(usual) > 2);
+  Fixture frugal(2);
+  frugal.view.setAtlas(bureau::kAtlasSize, 1);
+  CHECK(pagesAfterNewFigures(frugal) <= 2);
+}
+
+TEST_CASE("text bakes a glyph for each fraction of a pixel its pen falls on") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-text")
+                     .text(2, "AAAA")
+                     .append(1, 2)
+                     .append(0, 1));
+  fixture.view.frame(0);
+  CHECK(fixture.view.takeUploads().size() == 5);  // the white texel and four A's
+}
+
+TEST_CASE("monochrome text bakes a glyph once, in one bit, wherever its pen falls") {
+  Fixture fixture;
+  fixture.view.setMonochromeText(true);
+  fixture.commit(Stream()
+                     .create(1, "bureau-text")
+                     .text(2, "AAAA")
+                     .append(1, 2)
+                     .append(0, 1));
+  fixture.view.frame(0);
+  const auto uploads = fixture.view.takeUploads();
+  REQUIRE(uploads.size() == 2);  // the white texel and one A
+  const std::set<std::uint8_t> levels(uploads[1].pixels.begin(), uploads[1].pixels.end());
+  CHECK(levels == std::set<std::uint8_t>{0, 255});
+  CHECK(fixture.view.displayList()->quads.size() == 4);
 }
 
 TEST_CASE("a chart given new figures all session keeps the atlas in budget") {

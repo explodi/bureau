@@ -46,8 +46,10 @@ class Font {
                                  size_t length) const;
   /** The glyph for a code point, 0 where the face has none. */
   uint32_t glyphFor(char32_t codePoint) const;
-  /** Coverage at the font's size, its pen at x = `subpixel` of a pixel. */
-  RasterGlyph raster(uint32_t glyphIndex, float subpixel = 0) const;
+  /** Coverage at the font's size, its pen at x = `subpixel` of a pixel. When
+   * `monochrome`, each pixel is all or nothing. */
+  RasterGlyph raster(uint32_t glyphIndex, float subpixel = 0,
+                     bool monochrome = false) const;
   /** The face's hhea ascent and descent, in pixels: what line boxes use. */
   float ascent() const;
   float descent() const;

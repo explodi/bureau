@@ -386,8 +386,8 @@ void OpenGlBackend::upload(const std::vector<AtlasUpload>& uploads) {
       GLuint page = 0;
       gl.glGenTextures(1, &page);
       gl.glBindTexture(GL_TEXTURE_2D, page);
-      gl.glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA8), kAtlasSize,
-                      kAtlasSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+      gl.glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(GL_RGBA8), upload.pageSize,
+                      upload.pageSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
       gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       gl.pages.push_back(page);

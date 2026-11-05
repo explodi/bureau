@@ -64,6 +64,14 @@ class Ui {
     float scale = 1;
     /** A BCP 47 tag; the type styles and the line breaking follow its language. */
     std::string language = "en";
+    /** The atlas's pages, in texels a side, and how many it holds before a frame
+     * bakes afresh. A renderer with little texture memory lowers them. The Vulkan
+     * and Direct3D 12 backends hold kAtlasPageBudget pages at most. */
+    int atlasSize = kAtlasSize;
+    int atlasPageBudget = kAtlasPageBudget;
+    /** Text in one bit of coverage with its pens on whole pixels, for a renderer
+     * that cannot blend a glyph's edge. Clearest in a pixel font at its own size. */
+    bool monochromeText = false;
     /** Adds the game's own functions to `__native`, before the bundle runs and
      * again after every reload. */
     std::function<void(facebook::jsi::Runtime&, facebook::jsi::Object& native)>
