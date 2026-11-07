@@ -11,9 +11,10 @@
  *     HintAction  something the player can do from here
  *     HintKeys    keys and words on one line: "Press [Q] [E] to rotate"
  *
- * Nothing here paints: the rows sit inside the plate's own box. A row is one
- * line, so two suppliers compare at a glance; warnings and actions are
- * sentences and wrap.
+ * Nothing here paints: the rows sit inside the plate's own box. A pair is one
+ * line, so two suppliers compare at a glance; every other row wraps at the
+ * plate's width rather than run out of it, which a refusal in a long language
+ * does.
  */
 import { Children, type ReactNode } from "react";
 import { Box, Text } from "bureau/primitives";
@@ -26,7 +27,7 @@ export function HintRows({ children }: { children: ReactNode }) {
 export function HintLine({ children }: { children: ReactNode }) {
   return (
     <Box direction="column">
-      <Text typeStyle="ui-15-loose" nowrap>{children}</Text>
+      <Text typeStyle="ui-15-loose">{children}</Text>
     </Box>
   );
 }
@@ -35,7 +36,7 @@ export function HintLine({ children }: { children: ReactNode }) {
 export function HintHeading({ children }: { children: ReactNode }) {
   return (
     <Box direction="column" padding={[0, 0, 2, 0]}>
-      <Text typeStyle="ui-15-loose" nowrap>{children}</Text>
+      <Text typeStyle="ui-15-loose">{children}</Text>
     </Box>
   );
 }
