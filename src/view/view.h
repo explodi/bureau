@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "anim.h"
 #include "atlas.h"
 #include "bureau/display.h"
 #include "bureau/input.h"
@@ -228,7 +229,8 @@ class View {
   void paintNode(int id, PaintState& state);
   void paintChild(int id, PaintState& state);
   void paintContext(int id, PaintState state);
-  void paintBox(int id, const UiRect& rect, PaintState& state);
+  void paintBox(int id, const UiRect& rect, PaintState& state,
+                const std::optional<AnimationSample>& animated);
   void paintText(int id, const UiRect& rect, PaintState& state);
   void paintImage(int id, const UiRect& rect, PaintState& state);
   void paintField(int id, const UiRect& rect, PaintState& state);

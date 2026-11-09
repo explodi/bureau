@@ -30,6 +30,9 @@ struct View::PaintState {
   float opacity = 1;
   /** The engraved shadow under text, inherited down the subtree. */
   std::optional<style::Color> emboss;
+  /** The ink an animation gives the text inside its box, inherited down the
+   *  subtree: a rainbow's colour this frame. */
+  std::optional<style::Color> ink;
   bool textStipple = false;
 };
 
@@ -240,6 +243,9 @@ void View::paintNode(int id, PaintState& parent) {
   // A Box, a Scroll or a Layer's root.
   const Json* animation = prop(*found, "animation");
   std::optional<float> animatedOpacity;
+  // This frame's sample, once, with the box's delay and duration: its
+  // transform here, its fill and rings in paintBox, its ink in the text.
+  std::optional<AnimationSample> animated;
   if (animation != nullptr && animation->is_string()) {
     Live& live = live_[id];
     const std::string name = animation->get<std::string>();
@@ -291,6 +297,8 @@ void View::paintNode(int id, PaintState& parent) {
         repaintAtMs_ = std::min(repaintAtMs_, nowMs_ + sample->untilChangeMs);
       }
       if (sample->hidden) return;
+      animated = sample;
+      if (sample->ink) state.ink = tokens_.ink(*sample->ink, chromeOf(id));
       state.dx += sample->translateX +
                   sample->translateXPercent / 100 * rect.width;
       state.dy += sample->translateY +
@@ -338,7 +346,7 @@ void View::paintNode(int id, PaintState& parent) {
     pointerOverPress_ = true;
   }
 
-  paintBox(id, rect, state);
+  paintBox(id, rect, state, animated);
 
   PaintState inner = state;
   if (look.travel) {
@@ -357,7 +365,8 @@ void View::paintNode(int id, PaintState& parent) {
   paintFocusMark(id, rect, state);
 }
 
-void View::paintBox(int id, const UiRect& rect, PaintState& state) {
+void View::paintBox(int id, const UiRect& rect, PaintState& state,
+                    const std::optional<AnimationSample>& animated) {
   const Node& box = *node(id);
   const style::Chrome chrome = chromeOf(id);
   const auto look = lookStateOf(id);
@@ -380,19 +389,8 @@ void View::paintBox(int id, const UiRect& rect, PaintState& state) {
         QuadMode::Fill, 0, stipple, false, state.clip});
   };
 
-  // The box's animation now: a flash's fill, the attention ring's inks.
-  std::optional<AnimationSample> animated;
-  const Live& boxLive = live_[id];
-  const bool stopped =
-      boxLive.animationHeld && !boxLive.animationPausedMs.has_value();
-  if (prop(box, "animation") != nullptr && reducedMotion_) {
-    animated = stillAnimation(tokens_, boxLive.animation);
-  } else if (prop(box, "animation") != nullptr && !stopped) {
-    const Live& live = boxLive;
-    animated = sampleAnimation(tokens_, live.animation,
-                               nowMs_ - live.animationStartMs, std::nullopt,
-                               std::nullopt);
-  }
+  // The box's animation now (paintNode's sample): a flash's fill, the
+  // attention ring's inks.
   const bool ringed = animated && animated->ringColor;
 
   // The bevel: inset lines take no space; the outer ones fall outside.
@@ -759,7 +757,8 @@ void View::paintText(int id, const UiRect& rect, PaintState& state) {
   std::vector<Ink> inks;
   for (const int span : place.spanNodes) {
     Ink ink;
-    ink.color = inkOf(span).value_or(style::Color{250, 250, 250, 255});
+    ink.color = state.ink.value_or(
+        inkOf(span).value_or(style::Color{250, 250, 250, 255}));
     // The shadow: the Text's own, else its type's, else the emboss.
     int owner = span;
     const Node* spanNode = node(span);

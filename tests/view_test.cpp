@@ -3,6 +3,7 @@
 #include <doctest/doctest.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <fstream>
@@ -338,6 +339,26 @@ Extent extentOf(const bureau::DisplayList& list, std::uint8_t r,
 /** The pad's band is db32-yellow-bright on black. */
 Extent bandOf(const bureau::DisplayList& list) {
   return extentOf(list, 0xfb, 0xf2, 0x36);
+}
+
+/** Each glyph's colour, as red, green and blue, in paint order. */
+std::vector<std::array<std::uint8_t, 3>> glyphColours(
+    const bureau::DisplayList& list) {
+  std::vector<std::array<std::uint8_t, 3>> colours;
+  for (const auto& quad : list.quads) {
+    if (quad.mode != bureau::QuadMode::Mask) continue;
+    colours.push_back({quad.r, quad.g, quad.b});
+  }
+  return colours;
+}
+
+/** One glyph in a text of its own, `ink` set on the text when given. */
+Stream& glyph(Stream& stream, int id, const std::string& ink = "") {
+  Json props = {{"typeStyle", "mono-12-solid"}};
+  if (!ink.empty()) props["ink"] = ink;
+  return stream.create(id, "bureau-text", props)
+      .text(id + 1, "8")
+      .append(id, id + 1);
 }
 
 }  // namespace
@@ -810,6 +831,51 @@ TEST_CASE(
   CHECK(dark->quads[0].y1 == 300);
   CHECK(dark->quads[0].a == 255);
   CHECK(dark->quads[1].r == 255);
+}
+
+TEST_CASE("an animation's ink colours the text inside its box") {
+  // bureau-rainbow starts on db32-red-pink.
+  Fixture fixture;
+  Stream stream;
+  stream.create(1, "bureau-box", {{"direction", "row"}})
+      .create(2, "bureau-box", {{"animation", "bureau-rainbow"}});
+  glyph(stream, 10);
+  glyph(stream, 20, "db32-red-pink");
+  fixture.commit(stream.append(2, 10).append(1, 2).append(1, 20).append(0, 1));
+
+  REQUIRE(fixture.view.frame(0));
+
+  const auto colours = glyphColours(*fixture.view.displayList());
+  REQUIRE(colours.size() == 2);
+  CHECK(colours[0] == colours[1]);
+}
+
+TEST_CASE("a box's animated ink keeps the box's delay") {
+  // At 420 ms bureau-rainbow has moved on from db32-red-pink, but a box
+  // delayed by 420 ms has only just started on it.
+  Fixture fixture;
+  Stream stream;
+  stream.create(1, "bureau-box", {{"direction", "row"}})
+      .create(2, "bureau-box", {{"animation", "bureau-rainbow"}})
+      .create(3, "bureau-box",
+              {{"animation", "bureau-rainbow"}, {"animationDelayMs", 420}});
+  glyph(stream, 10);
+  glyph(stream, 20);
+  glyph(stream, 30, "db32-red-pink");
+  fixture.commit(stream.append(2, 10)
+                     .append(3, 20)
+                     .append(1, 2)
+                     .append(1, 3)
+                     .append(1, 30)
+                     .append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+
+  REQUIRE(fixture.view.frame(420));
+
+  const auto colours = glyphColours(*fixture.view.displayList());
+  REQUIRE(colours.size() == 3);
+  CHECK(colours[0] != colours[2]);
+  CHECK(colours[1] == colours[2]);
 }
 
 TEST_CASE("an animation that leaves opacity alone keeps the box's own") {

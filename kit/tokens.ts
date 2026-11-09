@@ -4317,6 +4317,27 @@ export const ANIMATIONS = {
       { atMs: 2550, ink: "db32-pink" },
     ],
   },
+  // The same figures dancing, a demoscene wave: each glyph a box of its own,
+  // a step behind the one before (`RainbowWave`), bobbing up and down as it
+  // steps through the rainbow, so the wave and the colours travel along it.
+  "bureau-rainbow-wave": {
+    durationMs: 1400,
+    easing: "ease-in-out",
+    repeat: "forever",
+    stillAtMs: 0,
+    frames: [
+      { at: [0, 50, 100], translateY: 0 },
+      { at: [25], translateY: -3 },
+      { at: [75], translateY: 3 },
+      { at: [0], ink: "db32-red-pink" },
+      { at: [14], ink: "db32-orange-burnt" },
+      { at: [28], ink: "db32-yellow-bright" },
+      { at: [43], ink: "db32-green-lime" },
+      { at: [57], ink: "db32-blue-sky" },
+      { at: [71], ink: "db32-purple" },
+      { at: [86], ink: "db32-pink" },
+    ],
+  },
 } as const satisfies Record<string, AnimationRecord>;
 export type Animation = keyof typeof ANIMATIONS;
 
