@@ -161,6 +161,11 @@ class Ui {
    * and while the bundle's first run is still starting it up. */
   View& view();
   js::Host* host() const;
+  /** What the UI's thread is in the middle of, from any thread: the handler
+   * the view is calling and the nearest named node it is on, then the file a
+   * read waits for ("onPress #stats > read /fonts/a.ttf"); empty between
+   * them. It names the work behind a turn that runs long. */
+  std::string doing() const;
 
  private:
   struct Impl;

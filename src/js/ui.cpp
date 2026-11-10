@@ -6,8 +6,10 @@
 #include <deque>
 #include <mutex>
 #include <random>
+#include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "bureau/bridge.h"
 #include "js/host.h"
@@ -59,6 +61,20 @@ const char* pointerStep(PointerEvent::Kind kind) {
   return "pointer";
 }
 
+/** A call into React as a stalled turn names it: the handler and the nearest
+ * named node it is on ("onPress #stats"), or the host's own listener and
+ * its first word ("__surface up"). */
+std::string callName(const View& view, int node, std::string_view handler,
+                     const nlohmann::json& args) {
+  const std::string name(handler);
+  if (node > 0) {
+    const std::string id = view.nameOf(node);
+    return id.empty() ? name : name + " #" + id;
+  }
+  const bool worded = args.is_array() && !args.empty() && args[0].is_string();
+  return worded ? name + " " + args[0].get<std::string>() : name;
+}
+
 }  // namespace
 
 struct Ui::Impl {
@@ -79,6 +95,28 @@ struct Ui::Impl {
 
   /** The UI's thread's: animation time, when something holds it still. */
   std::optional<double> frozenClock;
+
+  /** What the UI's thread is in the middle of, outermost first: it writes,
+   * any thread reads. */
+  mutable std::mutex doingMutex;
+  mutable std::vector<std::string> doing;
+
+  /** Names what the UI's thread does for as long as this lives. */
+  struct Doing {
+    Doing(const Impl* impl, std::string what) : impl_(impl) {
+      std::lock_guard lock(impl_->doingMutex);
+      impl_->doing.push_back(std::move(what));
+    }
+    ~Doing() {
+      std::lock_guard lock(impl_->doingMutex);
+      impl_->doing.pop_back();
+    }
+    Doing(const Doing&) = delete;
+    Doing& operator=(const Doing&) = delete;
+
+   private:
+    const Impl* impl_;
+  };
 
   void post(Task task, std::string tag) {
     std::lock_guard lock(mutex);
@@ -107,6 +145,7 @@ struct Ui::Impl {
   }
 
   std::optional<std::string> readAsset(const std::string& path) const {
+    const Doing reading(this, "read " + path);
     return options.readAsset ? options.readAsset(path) : std::nullopt;
   }
 
@@ -115,6 +154,12 @@ struct Ui::Impl {
     view->clear();
     jsi::Object native(js);
     installViewBridge(js, native, *view);
+    view->setDispatch([this, call = view->dispatch()](
+                          int node, std::string_view handler,
+                          const nlohmann::json& args) {
+      const Doing calling(this, callName(*view, node, handler, args));
+      return call(node, handler, args);
+    });
     installServices(js, native);
     if (options.install) options.install(js, native);
     js.global().setProperty(js, "__native", native);
@@ -395,6 +440,16 @@ View& Ui::view() { return *impl_->view; }
 js::Host* Ui::host() const {
   std::lock_guard lock(impl_->mutex);
   return impl_->host.get();
+}
+
+std::string Ui::doing() const {
+  std::lock_guard lock(impl_->doingMutex);
+  std::string joined;
+  for (const auto& what : impl_->doing) {
+    if (!joined.empty()) joined += " > ";
+    joined += what;
+  }
+  return joined;
 }
 
 }  // namespace bureau

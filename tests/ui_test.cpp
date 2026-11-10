@@ -8,6 +8,8 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <map>
+#include <mutex>
 #include <set>
 #include <string>
 #include <thread>
@@ -29,6 +31,11 @@ std::optional<std::string> readFile(const std::string& path) {
 /** A little game: the hello bundle, with its one function of its own. */
 struct Game {
   std::atomic<int> pressed{0};
+  /** What the UI's thread said it was doing inside the press's handler, and
+   * inside the read of each path. */
+  std::string doingInPress;
+  std::mutex readsMutex;
+  std::map<std::string, std::string> doingInRead;
   std::shared_ptr<const bureau::DisplayList> list;
   std::unique_ptr<bureau::Ui> ui;
 
@@ -40,7 +47,11 @@ struct Game {
     REQUIRE(bytecode.has_value());
     options.bytecode.assign(bytecode->begin(), bytecode->end());
     options.tokens = readFile(BUREAU_TOKENS_JSON).value();
-    options.readAsset = [](const std::string& path) {
+    options.readAsset = [this](const std::string& path) {
+      if (ui) {
+        std::lock_guard lock(readsMutex);
+        doingInRead[path] = ui->doing();
+      }
       return readFile(std::string(BUREAU_ASSETS_DIR) + path);
     };
     options.width = 320;
@@ -50,6 +61,7 @@ struct Game {
           js, native, "pressed",
           [this](jsi::Runtime&, const jsi::Value&, const jsi::Value* args,
                  size_t count) {
+            doingInPress = ui->doing();
             pressed = static_cast<int>(bureau::bridge::numberArg(args, count, 0));
             return jsi::Value::undefined();
           });
@@ -127,6 +139,38 @@ TEST_CASE("a click reaches TypeScript, and TypeScript the game's own function") 
   game.click(game.rectOf("press"));
   game.until([&] { return game.pressed.load() == 1; });
   CHECK(game.pressed.load() == 1);
+  game.ui->stop();
+}
+
+TEST_CASE("a handler at work is named with the node it is on") {
+  Game game;
+  game.until([&] { return game.drew(); });
+  game.click(game.rectOf("press"));
+  game.until([&] { return game.pressed.load() == 1; });
+  CHECK(game.doingInPress == "onPress #press");
+  game.ui->stop();
+}
+
+TEST_CASE("a file being read is named") {
+  Game game;
+  game.until([&] { return game.drew(); });
+  game.ui->invoke([](jsi::Runtime& js) {
+    js.global()
+        .getPropertyAsObject(js, "__native")
+        .getPropertyAsFunction(js, "assetText")
+        .call(js, "/no-such-file.txt");
+  });
+  std::lock_guard lock(game.readsMutex);
+  CHECK(game.doingInRead["/no-such-file.txt"] == "read /no-such-file.txt");
+  game.ui->stop();
+}
+
+TEST_CASE("the UI's thread between handlers is doing nothing") {
+  Game game;
+  game.until([&] { return game.drew(); });
+  std::string doing = "unread";
+  game.ui->invoke([&](jsi::Runtime&) { doing = game.ui->doing(); });
+  CHECK(doing == "");
   game.ui->stop();
 }
 

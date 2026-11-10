@@ -61,6 +61,7 @@ class View {
 
   bool loadTokens(std::string_view json);
   void setDispatch(Dispatch dispatch) { dispatch_ = std::move(dispatch); }
+  const Dispatch& dispatch() const { return dispatch_; }
   void setLanguage(const std::string& language);
   /** The window, in points, and its device pixels per point. */
   void setViewport(float width, float height, float screenScale);
@@ -153,6 +154,8 @@ class View {
   nlohmann::json contentExtent(int node);
   void markNavigable(int node, const std::string& grid, bool on);
   int find(const std::string& id) const;
+  /** The id of the nearest node, from `node` up, that has one; else empty. */
+  std::string nameOf(int node) const;
   void placeLayer(int node, float x, float y);
   float uiScale() const { return uiScale_; }
   /** The game's own surface: pointer input over it goes to the game rather
