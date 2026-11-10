@@ -89,10 +89,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^
     endif()
   endif()
 elseif(WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$")
-  # The pin's commit built with MSVC on the dynamic runtime, over Windows's
-  # own ICU, which no folder carries: icuuc and icuin,
-  # in every Windows 10 since version 1703. Proton's Wine has only 1903's
-  # icu.dll, so Proton cannot load the library; Linux has its own build.
+  # MSVC's dynamic runtime and the pin's static ICU, independent of OS ICU.
   set(bureau_hermes_source "${bureau_hermes_base}/source/hermes-${bureau_hermes_commit}")
   set(bureau_hermes_root "${bureau_hermes_base}/windows-x86_64/${bureau_hermes_artifact}")
   set(bureau_hermes_compiler "${bureau_hermes_base}/compiler/package/hermesc/win64-bin/hermesc.exe")
@@ -101,19 +98,30 @@ elseif(WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$")
     set(bureau_hermes_vm hermesvm_a)
   endif()
   if(EXISTS "${bureau_hermes_root}/lib/${bureau_hermes_vm}.lib")
+    set(bureau_icu_root "${bureau_hermes_base}/windows-x86_64/icu")
+    foreach(bureau_icu_artifact include/unicode/utypes.h lib/sicuin.lib lib/sicuuc.lib lib/sicudt.lib)
+      if(NOT EXISTS "${bureau_icu_root}/${bureau_icu_artifact}")
+        message(FATAL_ERROR "Static ICU is missing: deno task bureau:hermes (${bureau_icu_artifact})")
+      endif()
+    endforeach()
     add_library(bureau_hermes INTERFACE)
     target_include_directories(bureau_hermes SYSTEM INTERFACE
       "${bureau_hermes_source}/API" "${bureau_hermes_source}/API/jsi"
       "${bureau_hermes_source}/public" "${bureau_hermes_source}/include"
-      "${bureau_hermes_root}/include")
+      "${bureau_hermes_root}/include" "${bureau_icu_root}/include")
     target_link_libraries(bureau_hermes INTERFACE
       "${bureau_hermes_root}/lib/${bureau_hermes_vm}.lib"
       "${bureau_hermes_root}/jsi/jsi.lib"
       "${bureau_hermes_root}/external/boost/boost_1_86_0/libs/context/boost_context.lib"
-      icuuc icuin)
+      "${bureau_icu_root}/lib/sicuin.lib"
+      "${bureau_icu_root}/lib/sicuuc.lib"
+      "${bureau_icu_root}/lib/sicudt.lib"
+      # The VM's sampling profiler sets the timer resolution through winmm.
+      advapi32 winmm)
     # As the VM was built (build_hermes.ts): a dllexport class in a header
     # would export its inline members from every library including it.
-    target_compile_definitions(bureau_hermes INTERFACE HERMES_EXPORT= SHERMES_EXPORT=)
+    target_compile_definitions(bureau_hermes INTERFACE
+      HERMES_EXPORT= SHERMES_EXPORT= U_STATIC_IMPLEMENTATION)
   endif()
 endif()
 

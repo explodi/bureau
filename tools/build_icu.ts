@@ -1,6 +1,12 @@
-/** Static ICU in the program's shared library must be position independent. */
+/** The pin's ICU, linked statically into the program on every non-Apple host. */
 import { join } from "@std/path";
 import type { HermesPin } from "./fetch_hermes.ts";
+import {
+  msysPath,
+  windowsIcuEnvironment,
+  windowsIcuTools,
+  withWindowsIcuDrive,
+} from "./windows_icu.ts";
 
 /** What a game building for Android hands Hermes's build (fetch_hermes.ts). */
 export type AndroidToolchain = {
@@ -11,6 +17,20 @@ export type AndroidToolchain = {
   abi: string;
   minSdk: number;
 };
+
+type IcuPin = Pick<HermesPin, "icu">;
+
+const STATIC_FLAGS = [
+  "--enable-static",
+  "--disable-shared",
+  "--with-data-packaging=static",
+  "--disable-tests",
+  "--disable-samples",
+  "--disable-extras",
+  "--disable-icuio",
+];
+const UNIX_ARCHIVES = ["libicuuc.a", "libicui18n.a", "libicudata.a"];
+const WINDOWS_ARCHIVES = ["sicuuc.lib", "sicuin.lib", "sicudt.lib"];
 
 const PIC = { CFLAGS: "-O2 -fPIC", CXXFLAGS: "-O2 -fPIC" };
 
@@ -39,6 +59,9 @@ type IcuBuild = {
   env: Record<string, string>;
   /** Names the flags in the build's stamp: another profile rebuilds. */
   profile: string;
+  archives?: string[];
+  make?: string;
+  shellPath?: (path: string) => Promise<string>;
 };
 
 /** Where an ICU build installed, and its build tree, whose tools a cross
@@ -46,7 +69,7 @@ type IcuBuild = {
 type BuiltIcu = { install: string; build: string };
 
 async function buildIcu(
-  pin: HermesPin,
+  pin: IcuPin,
   dir: string,
   icu: IcuBuild,
 ): Promise<BuiltIcu> {
@@ -61,43 +84,50 @@ async function buildIcu(
   const previous = await Deno.readTextFile(stamp).catch(() => "");
   const artifacts = [
     "include/unicode/utypes.h",
-    "lib/libicuuc.a",
-    "lib/libicui18n.a",
-    "lib/libicudata.a",
+    ...(icu.archives ?? UNIX_ARCHIVES).map((file) => `lib/${file}`),
   ];
-  const ready = await Promise.all(
-    artifacts.map((file) => Deno.stat(join(install, file))),
-  )
-    .then(() => true, () => false);
-  if (previous === recipe && ready) {
+  const ready = async () =>
+    await Promise.all(
+      artifacts.map(async (file) => {
+        const info = await Deno.stat(join(install, file));
+        return info.isFile && info.size > 0;
+      }),
+    ).then((files) => files.every(Boolean), () => false);
+  if (previous === recipe && await ready()) {
     console.log(`ICU ${pin.icu.version} (${icu.target}): ready at ${install}`);
     return { install, build };
   }
+  // Make cannot detect changed flags, and interrupted installs are not caches.
+  await Deno.remove(build, { recursive: true }).catch((error) => {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  });
+  await Deno.remove(install, { recursive: true }).catch((error) => {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  });
   await Deno.mkdir(build, { recursive: true });
-  // Make does not detect changed compiler flags in its existing objects.
-  if (previous && previous !== recipe) {
-    await run("make", ["clean"], build, icu.env);
-  }
+  const prefix = icu.shellPath ? await icu.shellPath(install) : install;
+  const libdir = icu.shellPath
+    ? await icu.shellPath(join(install, "lib"))
+    : join(install, "lib");
   const started = performance.now();
   await run(
     icu.configure,
     [
       ...icu.platform,
-      `--prefix=${install}`,
-      `--libdir=${join(install, "lib")}`,
-      "--enable-static",
-      "--disable-shared",
-      "--with-data-packaging=static",
-      "--disable-tests",
-      "--disable-samples",
-      "--disable-extras",
-      "--disable-icuio",
+      `--prefix=${prefix}`,
+      `--libdir=${libdir}`,
+      ...STATIC_FLAGS,
     ],
     build,
     icu.env,
   );
-  await run("make", ["--jobs=4"], build, icu.env);
-  await run("make", ["install"], build, icu.env);
+  await run(icu.make ?? "make", ["--jobs=4"], build, icu.env);
+  await run(icu.make ?? "make", ["install"], build, icu.env);
+  if (!await ready()) {
+    throw new Error(
+      `ICU did not install its static headers and archives at ${install}`,
+    );
+  }
   await Deno.writeTextFile(stamp, recipe);
   console.log(
     `ICU ${pin.icu.version} (${icu.target}): built at ${install} (${
@@ -107,12 +137,12 @@ async function buildIcu(
   return { install, build };
 }
 
-function runConfigure(pin: HermesPin, dir: string): string {
+function runConfigure(pin: IcuPin, dir: string): string {
   return join(dir, pin.icu.unpack, "icu/source/runConfigureICU");
 }
 
 export async function buildLinuxIcu(
-  pin: HermesPin,
+  pin: IcuPin,
   dir: string,
 ): Promise<string> {
   const built = await buildIcu(pin, dir, {
@@ -128,7 +158,7 @@ export async function buildLinuxIcu(
 /** Android's ICU, cross-built with the NDK. ICU's cross build makes its
  * data with tools of the host's own build, so that is built first. */
 export async function buildAndroidIcu(
-  pin: HermesPin,
+  pin: IcuPin,
   dir: string,
   sdk: AndroidToolchain,
 ): Promise<string> {
@@ -159,4 +189,35 @@ export async function buildAndroidIcu(
     profile: `android${sdk.minSdk}-pic-static-O2-1`,
   });
   return built.install;
+}
+
+/** The same pinned ICU, on MSVC's dynamic C runtime, with no OS ICU imports. */
+export async function buildWindowsIcu(
+  pin: IcuPin,
+  dir: string,
+  developer: Record<string, string>,
+): Promise<string> {
+  const tools = await windowsIcuTools();
+  const env = await windowsIcuEnvironment(tools, developer);
+  await withWindowsIcuDrive(dir, async (drive) => {
+    await buildIcu(pin, drive, {
+      target: "windows-x86_64",
+      configure: tools.bash,
+      platform: [
+        "--noprofile",
+        "--norc",
+        await msysPath(tools, runConfigure(pin, drive)),
+        "MSYS/MSVC",
+        // MSYS's uname names its shell; ICU's MSVC make fragment is mingw.
+        "--build=x86_64-pc-mingw64",
+        "--host=x86_64-pc-mingw64",
+      ],
+      env,
+      profile: "msys-msvc-static-md-cxx17-O2-1",
+      archives: WINDOWS_ARCHIVES,
+      make: tools.make,
+      shellPath: (path) => msysPath(tools, path),
+    });
+  });
+  return join(dir, "windows-x86_64", "icu");
 }
