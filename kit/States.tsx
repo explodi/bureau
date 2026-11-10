@@ -73,13 +73,24 @@ export function EmptyState(
       {picture && <Box shrink={0} hidden>{picture}</Box>}
       {
         /* A centred column sizes its children to their measure, not to the
-          body: the full width makes a long message wrap in a narrow one. */
+          body: the full width makes a long message wrap in a narrow one, and
+          centring inside it puts a line shorter than the body in the middle. */
       }
-      <Box width="100%" maxWidth={messageWidth}>
+      <Box
+        width="100%"
+        maxWidth={messageWidth}
+        direction="column"
+        align="center"
+      >
         <Text typeStyle="ui-18" ink="ink" align="center">{children}</Text>
       </Box>
       {help && (
-        <Box width="100%" maxWidth={helpWidth}>
+        <Box
+          width="100%"
+          maxWidth={helpWidth}
+          direction="column"
+          align="center"
+        >
           <Text typeStyle="ui-15-relaxed" align="center">{help}</Text>
         </Box>
       )}
