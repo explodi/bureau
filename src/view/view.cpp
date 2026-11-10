@@ -293,6 +293,16 @@ int View::find(const std::string& id) const {
   return found == namedNodes_.end() ? 0 : found->second;
 }
 
+std::string View::nameOf(int id) const {
+  for (int current = id; current > 0; current = placedParent(current)) {
+    const Node* found = node(current);
+    if (found == nullptr) break;
+    const auto name = textProp(*found, "id");
+    if (!name.empty()) return name;
+  }
+  return {};
+}
+
 int View::placedParent(int id) const {
   ensurePlacementTree();
   const auto found = placedParents_.find(id);
