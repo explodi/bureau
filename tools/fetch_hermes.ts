@@ -1,7 +1,6 @@
 /**
  * Fetches Hermes's checked compiler package and release/debug VMs: Apple
- * artifacts, Linux source builds with static ICU, or Windows source builds over
- * the system's ICU.
+ * artifacts, or Linux and Windows source builds with pinned static ICU.
  *
  *   deno task hermes             the release and debug builds
  *   deno task hermes -- --dsyms  their dSYMs as well (870 MB)
@@ -12,9 +11,8 @@
  * compiler package supplies every desktop's executable and Windows DLLs;
  * its package version, reported release and bytecode version must match
  * the pin. Source builds are incremental and need CMake, Ninja and a C++
- * compiler (Visual Studio's, found by itself, on Windows); Linux's needs
- * Make, and builds ICU from pinned source with PIC for the shared program
- * library. A second run fetches nothing.
+ * compiler (Visual Studio's, found by itself, on Windows). ICU needs GNU Make,
+ * from MSYS2 on Windows, and PIC on Linux. A second run fetches nothing.
  */
 import { encodeHex } from "@std/encoding/hex";
 import { dirname, fromFileUrl, join } from "@std/path";
@@ -204,9 +202,7 @@ export async function fetchHermes(
   if (desktopFromSource || android) {
     const { buildHermesFromSource } = await import("./build_hermes.ts");
     await fetchAsset(pin.source.urlBase, pin.source, dir);
-    if (Deno.build.os === "linux" || android) {
-      await fetchAsset(pin.icu.urlBase, pin.icu, dir);
-    }
+    await fetchAsset(pin.icu.urlBase, pin.icu, dir);
     if (desktopFromSource) {
       await buildHermesFromSource(pin, dir, hermesc, "desktop");
     }

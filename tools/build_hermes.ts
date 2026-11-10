@@ -1,12 +1,11 @@
-/** Build the pinned VM from source with a compiler of the same pin: Linux's
- * and Android's with static ICU, Windows's against the system's ICU
- * (native_windows.md J1). */
+/** Build the pinned VM and its static ICU with a compiler of the same pin. */
 import { fromFileUrl, join } from "@std/path";
 import type { HermesPin } from "./fetch_hermes.ts";
 import {
   type AndroidToolchain,
   buildAndroidIcu,
   buildLinuxIcu,
+  buildWindowsIcu,
 } from "./build_icu.ts";
 import { msvcEnvironment } from "./msvc.ts";
 
@@ -81,19 +80,27 @@ async function androidHost(
   };
 }
 
-// Built without an ICU of its own, Hermes links Windows's (icuuc, icuin),
-// which every Windows 10 since 1703 has; nothing ships. The dynamic C runtime.
-async function windowsHost(): Promise<HostBuild> {
+// The program and its VM use /MD; ICU's archives use the same runtime.
+async function windowsHost(pin: HermesPin, dir: string): Promise<HostBuild> {
+  const env = await msvcEnvironment();
+  const icu = (await buildWindowsIcu(pin, dir, env)).replaceAll("\\", "/");
   return {
     host: "windows-x86_64",
     flags: [
       "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL",
-      "-DHERMES_ENABLE_WIN10_ICU_FALLBACK=ON",
+      "-DHERMES_USE_STATIC_ICU=ON",
+      "-DHERMES_ENABLE_WIN10_ICU_FALLBACK=OFF",
+      "-UICU_*",
+      `-DICU_ROOT=${icu}`,
+      `-DICU_INCLUDE_DIR=${icu}/include`,
+      `-DICU_UC_LIBRARY_RELEASE=${icu}/lib/sicuuc.lib`,
+      `-DICU_I18N_LIBRARY_RELEASE=${icu}/lib/sicuin.lib`,
+      `-DICU_DATA_LIBRARY_RELEASE=${icu}/lib/sicudt.lib`,
       "-DCMAKE_C_COMPILER=cl",
       "-DCMAKE_CXX_COMPILER=cl",
     ],
     jobs: navigator.hardwareConcurrency,
-    env: await msvcEnvironment(),
+    env,
   };
 }
 
@@ -107,7 +114,7 @@ export async function buildHermesFromSource(
   const { host: hostName, flags, jobs, env } = target !== "desktop"
     ? await androidHost(pin, dir, target)
     : Deno.build.os === "windows"
-    ? await windowsHost()
+    ? await windowsHost(pin, dir)
     : await linuxHost(pin, dir);
   const source = join(dir, pin.source.unpack, `hermes-${pin.commit}`);
   const host = join(dir, hostName);
