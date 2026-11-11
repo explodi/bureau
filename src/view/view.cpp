@@ -138,6 +138,12 @@ bool View::commit(const int32_t* operations, size_t count,
   for (auto it = marks_.begin(); it != marks_.end();) {
     it = tree_.node(it->first) == nullptr ? marks_.erase(it) : std::next(it);
   }
+  // Ids are reused: a hint's place kept past its layer would move the window
+  // that next takes its id, off the screen when the hint was hidden.
+  for (auto it = placedLayers_.begin(); it != placedLayers_.end();) {
+    it = tree_.node(it->first) == nullptr ? placedLayers_.erase(it)
+                                          : std::next(it);
+  }
   if (focused_ != 0 && !connected(focused_)) {
     focused_ = 0;
     call(0, "__focus", Json::array({0}));
