@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { host, type HostNode } from "bureau/host";
+import { keepMeasure } from "./measured_state.ts";
 
 /** A box's size in its own pixels: the room a picture or a plot in it gets. */
 export interface MeasuredSize {
@@ -23,7 +24,7 @@ export function useMeasuredRect(): [
     if (!node) return;
     const update = () => {
       const next = measuredSize(node);
-      setSize((last) => sameSize(last, next) ? last : next);
+      setSize((last) => keepMeasure(last, next));
     };
     update();
     return host.observeLayout(update);
@@ -35,8 +36,4 @@ export function useMeasuredRect(): [
 export function measuredSize(node: HostNode): MeasuredSize {
   const rect = host.measure(node);
   return { width: rect.width / rect.scale, height: rect.height / rect.scale };
-}
-
-function sameSize(a: MeasuredSize | null, b: MeasuredSize): boolean {
-  return a !== null && a.width === b.width && a.height === b.height;
 }

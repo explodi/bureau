@@ -57,6 +57,7 @@ import {
   printableScale,
 } from "./chart_scale.ts";
 import { InstrumentPlace } from "./instrument_place.ts";
+import { keepMeasure } from "./measured_state.ts";
 
 export type ChartMarker = {
   index: number;
@@ -547,10 +548,11 @@ export function Chart({
     if (!node) return;
     const measure = () => {
       const rect = host.measure(node);
-      setWellSize({
+      const size = {
         width: Math.floor(rect.width),
         height: Math.floor(rect.height),
-      });
+      };
+      setWellSize((last) => keepMeasure(last, size));
     };
     measure();
     return host.observeLayout(measure);
