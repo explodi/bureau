@@ -14,6 +14,7 @@
 #include "bureau/bridge.h"
 #include "js/host.h"
 #include "js/inspect.h"
+#include "js/pointer_moves.h"
 #include "js/view_bridge.h"
 #include "view/view.h"
 
@@ -92,6 +93,7 @@ struct Ui::Impl {
   float scale = 1;
   /** What the UI's thread hands the render thread between refreshes. */
   Frame mailbox;
+  js::PointerMoves mouseMoves;
 
   /** The UI's thread's: animation time, when something holds it still. */
   std::optional<double> frozenClock;
@@ -343,18 +345,30 @@ void Ui::resendAtlas() {
 
 void Ui::pointer(const PointerEvent& event) {
   Impl* impl = impl_.get();
-  impl->post([impl, event](jsi::Runtime&) { impl->view->pointer(event); },
-             pointerStep(event.kind));
+  // Fingers keep every move: a gesture reads each finger's path.
+  const bool mouseMove = event.kind == PointerEvent::Kind::Move && !event.touch;
+  if (!mouseMove) {
+    impl->mouseMoves.seal();
+    impl->post([impl, event](jsi::Runtime&) { impl->view->pointer(event); },
+               pointerStep(event.kind));
+    return;
+  }
+  if (!impl->mouseMoves.hold(event)) return;
+  impl->post(
+      [impl](jsi::Runtime&) { impl->view->pointer(impl->mouseMoves.take()); },
+      pointerStep(event.kind));
 }
 
 void Ui::key(const KeyEvent& event) {
   Impl* impl = impl_.get();
+  impl->mouseMoves.seal();
   impl->post([impl, event](jsi::Runtime&) { impl->view->key(event); },
              event.down ? "key down" : "key up");
 }
 
 void Ui::typed(std::string text) {
   Impl* impl = impl_.get();
+  impl->mouseMoves.seal();
   impl->post([impl, text = std::move(text)](
                  jsi::Runtime&) { impl->view->typed(text); },
              "typed text");
@@ -362,6 +376,7 @@ void Ui::typed(std::string text) {
 
 void Ui::edit(nlohmann::json edit) {
   Impl* impl = impl_.get();
+  impl->mouseMoves.seal();
   impl->post([impl, edit = std::move(edit)](
                  jsi::Runtime&) { impl->view->editText(edit); },
              "text edit");

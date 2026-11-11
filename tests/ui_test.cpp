@@ -16,11 +16,18 @@
 
 #include "bureau/bridge.h"
 #include "bureau/ui.h"
+#include "js/pointer_moves.h"
 #include "view/view.h"
 
 namespace {
 
 namespace jsi = facebook::jsi;
+
+bureau::PointerEvent moveTo(float x) {
+  bureau::PointerEvent event;
+  event.x = x;
+  return event;
+}
 
 std::optional<std::string> readFile(const std::string& path) {
   std::ifstream file(path, std::ios::binary);
@@ -256,4 +263,32 @@ TEST_CASE("a task posted before the start runs after it, and one after the stop 
   ui.stop();
   ui.post([&](jsi::Runtime&) { ++ran; });
   CHECK(ran.load() == 1);
+}
+
+TEST_CASE("a mouse move with none waiting asks for a task") {
+  bureau::js::PointerMoves moves;
+  CHECK(moves.hold(moveTo(10)));
+}
+
+TEST_CASE("a mouse move takes a waiting one's place and asks for no task") {
+  bureau::js::PointerMoves moves;
+  moves.hold(moveTo(10));
+  CHECK_FALSE(moves.hold(moveTo(20)));
+  CHECK(moves.take().x == 20);
+}
+
+TEST_CASE("a mouse move after other input waits behind it") {
+  bureau::js::PointerMoves moves;
+  moves.hold(moveTo(10));
+  moves.seal();
+  CHECK(moves.hold(moveTo(20)));
+  CHECK(moves.take().x == 10);
+  CHECK(moves.take().x == 20);
+}
+
+TEST_CASE("a mouse move after the waiting one was taken asks for a task") {
+  bureau::js::PointerMoves moves;
+  moves.hold(moveTo(10));
+  moves.take();
+  CHECK(moves.hold(moveTo(20)));
 }
