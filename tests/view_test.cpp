@@ -690,6 +690,36 @@ TEST_CASE("a screen-anchored layer stands its distance from the edges") {
   CHECK(fixture.rect(3).y == doctest::Approx(250));
 }
 
+TEST_CASE("a layer that takes a removed layer's id stands at its own place") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"id", "ui-root"},
+                              {"position", "absolute"},
+                              {"inset", {{"top", 0}, {"right", 0}, {"bottom", 0},
+                                         {"left", 0}}}})
+                     .create(2, "bureau-layer")
+                     .create(3, "bureau-box", {{"width", 50}, {"height", 30}})
+                     .append(2, 3)
+                     .append(1, 2)
+                     .append(0, 1));
+  // A hidden hint parks its layer far off the screen.
+  fixture.view.placeLayer(2, -9999, -9999);
+  Stream removeHint;
+  // The layer leaves its parent, then its box and the layer are destroyed.
+  removeHint.operations = {5, 1, 2, 7, 3, 7, 2};
+  fixture.commit(removeHint);
+  fixture.commit(Stream()
+                     .create(2, "bureau-layer",
+                             {{"anchor", {{"kind", "screen"}, {"left", 20},
+                                          {"top", 20}}}})
+                     .create(3, "bureau-box", {{"width", 50}, {"height", 30}})
+                     .append(2, 3)
+                     .append(1, 2));
+  CHECK(fixture.rect(3).x == doctest::Approx(20));
+  CHECK(fixture.rect(3).y == doctest::Approx(20));
+}
+
 TEST_CASE("a raised key draws its face, then its bevel, its ring in front") {
   Fixture fixture;
   fixture.commit(Stream()
