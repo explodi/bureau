@@ -78,6 +78,24 @@ void drain(jsi::Runtime& runtime) {
   }
 }
 
+std::int64_t steady_ns() {
+  return std::chrono::duration_cast<std::chrono::nanoseconds>(
+             std::chrono::steady_clock::now().time_since_epoch())
+      .count();
+}
+
+/** A callback's function name, read before the callback runs. */
+std::string name_of(jsi::Runtime& runtime, const jsi::Function& callback) {
+  try {
+    const jsi::Value name = callback.getProperty(runtime, "name");
+    const std::string text =
+        name.isString() ? name.getString(runtime).utf8(runtime) : "";
+    return text.empty() ? "anonymous" : text;
+  } catch (const std::exception&) {
+    return "anonymous";
+  }
+}
+
 }  // namespace
 
 struct Host::Impl {
@@ -141,6 +159,8 @@ struct Host::Impl {
   bool tickTagged = false;
   mutable std::mutex turnMutex;
   Host::Turn turn;
+  /** When the running step began, on turnStartedNs's clock; under turnMutex. */
+  std::int64_t stepStartedNs = 0;
   std::mutex debuggerMutex;
   std::mutex debuggerCommandMutex;
   std::vector<std::string> debuggerMessages;
@@ -195,6 +215,14 @@ struct Host::Impl {
   void set_step(std::string step) {
     std::lock_guard lock(turnMutex);
     turn.step = std::move(step);
+    turn.callback.clear();
+    stepStartedNs = steady_ns();
+  }
+
+  void set_callback(const jsi::Function& callback) {
+    std::string name = name_of(*runtime, callback);
+    std::lock_guard lock(turnMutex);
+    turn.callback = std::move(name);
   }
 
   void report(const std::string& message) {
@@ -384,6 +412,7 @@ struct Host::Impl {
          --queued) {
       jsi::Function callback = std::move(immediate.front());
       immediate.pop_front();
+      set_callback(callback);
       guarded([&] { callback.call(*runtime); });
       guarded([&] { drain(*runtime); });
     }
@@ -397,6 +426,7 @@ struct Host::Impl {
       timers.erase(due);
       running_timer_id = timer.id;
       cancel_running_timer = false;
+      set_callback(timer.callback);
       guarded([&] {
         if (timer.animation_frame) {
           timer.callback.call(*runtime, time);
@@ -418,6 +448,7 @@ struct Host::Impl {
     auto due = std::move(frames);
     frames.clear();
     for (auto& [id, callback] : due) {
+      set_callback(callback);
       guarded([&] { callback.call(*runtime, time); });
       guarded([&] { drain(*runtime); });
     }
@@ -473,7 +504,9 @@ struct Host::Impl {
       tickTagged = false;
       {
         std::lock_guard lock(turnMutex);
-        turn = Host::Turn{.step = "", .tasks = batch.size(), .tasksRun = 0};
+        turn = Host::Turn{
+            .step = "", .callback = "", .tasks = batch.size(), .tasksRun = 0};
+        stepStartedNs = turnStartedNs;
       }
       for (auto& task : batch) {
         set_step(std::move(task.step));
@@ -658,17 +691,15 @@ double Host::now() const { return impl_->clock(); }
 double Host::busyMs() const {
   const std::int64_t started = impl_->turnStartedNs;
   if (started == 0) return 0;
-  const std::int64_t now =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(
-          std::chrono::steady_clock::now().time_since_epoch())
-          .count();
-  return static_cast<double>(now - started) / 1e6;
+  return static_cast<double>(steady_ns() - started) / 1e6;
 }
 
 Host::Turn Host::turn() const {
   if (impl_->turnStartedNs == 0) return {};
   std::lock_guard lock(impl_->turnMutex);
-  return impl_->turn;
+  Turn turn = impl_->turn;
+  turn.stepMs = static_cast<double>(steady_ns() - impl_->stepStartedNs) / 1e6;
+  return turn;
 }
 
 }  // namespace bureau::js

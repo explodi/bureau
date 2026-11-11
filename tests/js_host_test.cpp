@@ -7,12 +7,14 @@
 #include "../src/tree/tree.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <future>
 #include <iterator>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -205,6 +207,71 @@ TEST_CASE("a held turn names a post without a tag an untagged task") {
   const auto turn = host.turn();
   release.set_value();
   CHECK(turn.step == "untagged task");
+  CHECK(host.take_error().empty());
+}
+
+TEST_CASE("a held timer names its callback to another thread") {
+  bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto ready = entered.get_future();
+  auto held = release.get_future();
+  host.invoke([&](facebook::jsi::Runtime& runtime) {
+    auto refreshClock = facebook::jsi::Function::createFromHostFunction(
+        runtime, facebook::jsi::PropNameID::forAscii(runtime, "refreshClock"),
+        0,
+        [&](facebook::jsi::Runtime&, const facebook::jsi::Value&,
+            const facebook::jsi::Value*, size_t) {
+          entered.set_value();
+          held.wait();
+          return facebook::jsi::Value::undefined();
+        });
+    runtime.global()
+        .getPropertyAsFunction(runtime, "setTimeout")
+        .call(runtime, refreshClock, 0);
+  });
+  auto advanced = std::async(std::launch::async, [&] { host.advance(0); });
+  ready.wait();
+  const auto turn = host.turn();
+  release.set_value();
+  advanced.wait();
+  CHECK(turn.step == "timers");
+  CHECK(turn.callback == "refreshClock");
+  CHECK(host.take_error().empty());
+}
+
+TEST_CASE("a held turn times its step apart from the steps before it") {
+  bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
+  std::promise<void> blocking;
+  std::promise<void> unblock;
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto blocked = blocking.get_future();
+  auto unblocked = unblock.get_future();
+  auto ready = entered.get_future();
+  auto held = release.get_future();
+  host.post([&](facebook::jsi::Runtime&) {
+    blocking.set_value();
+    unblocked.wait();
+  });
+  blocked.wait();
+  // Queued behind the blocking turn, both run in the next one.
+  host.post([](facebook::jsi::Runtime&) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }, "worldLoaded");
+  host.post([&](facebook::jsi::Runtime&) {
+    entered.set_value();
+    held.wait();
+  }, "tickEvents");
+  unblock.set_value();
+  ready.wait();
+  const auto turn = host.turn();
+  const double busyMs = host.busyMs();
+  release.set_value();
+  REQUIRE(turn.tasks == 2);
+  CHECK(turn.step == "tickEvents");
+  CHECK(turn.callback.empty());
+  CHECK(busyMs - turn.stepMs >= 50);
   CHECK(host.take_error().empty());
 }
 
