@@ -93,8 +93,15 @@ class Host {
    * have run. A stall is one slow step, or a burst of hundreds of tasks. */
   struct Turn {
     std::string step;
+    /** The timer, immediate or frame callback the step is in, by its
+     * function's name ("anonymous" without one); empty outside them. React's
+     * scheduler is "performWorkUntilDeadline". */
+    std::string callback;
     std::size_t tasks = 0;
     std::size_t tasksRun = 0;
+    /** How long the step has run; the rest of the turn went to the steps
+     * before it. */
+    double stepMs = 0;
   };
   Turn turn() const;
 
