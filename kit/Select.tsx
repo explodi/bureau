@@ -37,6 +37,7 @@ import {
 } from "./input/useGamepad.ts";
 import { playKitSound } from "./sounds.ts";
 import { markPopoverOpen } from "./popoverState.ts";
+import { keepMeasure } from "./measured_state.ts";
 
 export type SelectOption<T extends string> = {
   value: T;
@@ -149,13 +150,11 @@ export function Select<T extends string>(
         viewportH * 0.6,
       );
       const maxHeight = Math.max(120, safeMax);
-      setMeasuredListboxStyle({
-        anchor: openUpwards
-          ? { kind: "screen", left: rect.left, bottom: viewportH - top }
-          : { kind: "screen", left: rect.left, top: bottom },
-        width: rect.width,
-        maxHeight,
-      });
+      const anchor: LayerAnchor = openUpwards
+        ? { kind: "screen", left: rect.left, bottom: viewportH - top }
+        : { kind: "screen", left: rect.left, top: bottom };
+      const style = { anchor, width: rect.width, maxHeight };
+      setMeasuredListboxStyle((last) => keepMeasure(last, style));
     };
     updatePosition();
     const trigger = triggerRef.current;

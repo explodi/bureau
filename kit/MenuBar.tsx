@@ -46,6 +46,7 @@ import {
   parseShortcut,
 } from "./menu_keys.ts";
 import { useStatus } from "./bureau_status.ts";
+import { keepMeasure } from "./measured_state.ts";
 
 export type MenuItem = {
   /** Omit the label for a separator rule. */
@@ -222,11 +223,12 @@ export function MenuBar(
       if (!title) return;
       const rect = host.measure(title);
       const bottom = rect.bottom;
-      setMeasuredDropdownStyle({
+      const style = {
         left: rect.left,
         top: bottom,
         maxHeight: host.viewport().height - bottom - 16,
-      });
+      };
+      setMeasuredDropdownStyle((last) => keepMeasure(last, style));
     };
     place();
     const title = titleRefs.current[openIndex];
