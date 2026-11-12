@@ -169,6 +169,16 @@ export interface BoxProps extends Layout, Access {
   animationDelayMs?: number;
   /** How long one run takes, where the caller sets it: a hold's fill. */
   animationDurationMs?: number;
+  /**
+   * When layout moves the box in its parent, it glides there from where it
+   * was drawn over this many milliseconds, slowing as it arrives, with all it
+   * holds: a tab strip that slides to centre the open tab, a selection bar
+   * that runs between rows. A move during a glide sets off from where the box
+   * is drawn then. A box glides only when it moves: it appears in place, and
+   * a scroll or a move of its parent carries it at once. Under reduced motion
+   * it stands in its new place at once.
+   */
+  glideMs?: number;
   onPress?: (press: Press) => void;
   /** The secondary button (a right click) let go over the box: a context
    * menu's. The innermost box that has one hears it. */

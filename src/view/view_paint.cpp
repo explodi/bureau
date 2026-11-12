@@ -241,6 +241,14 @@ void View::paintNode(int id, PaintState& parent) {
   }
 
   // A Box, a Scroll or a Layer's root.
+  const float glideMs = number(*found, "glideMs", 0);
+  if (glideMs > 0) {
+    const auto [glideX, glideY] = glideShift(live_[id], place, glideMs);
+    state.dx += glideX / state.frame;
+    state.dy += glideY / state.frame;
+  } else if (const auto live = live_.find(id); live != live_.end()) {
+    live->second.glidePlaced = false;
+  }
   const Json* animation = prop(*found, "animation");
   std::optional<float> animatedOpacity;
   // This frame's sample, once, with the box's delay and duration: its
@@ -303,12 +311,6 @@ void View::paintNode(int id, PaintState& parent) {
                   sample->translateXPercent / 100 * rect.width;
       state.dy += sample->translateY +
                   sample->translateYPercent / 100 * rect.height;
-      const bool shifted = state.dx * state.frame != parentShiftX ||
-                           state.dy * state.frame != parentShiftY;
-      if (shifted) {
-        paintedShifts_[id] = {parentShiftX, parentShiftY, state.dx * state.frame,
-                              state.dy * state.frame};
-      }
       animatedOpacity = sample->opacity;
       // A scale about the box's centre, or along its width from its left.
       const float sx = sample->scale * sample->scaleX;
@@ -327,6 +329,12 @@ void View::paintNode(int id, PaintState& parent) {
   } else if (Live* live = live_.count(id) ? &live_[id] : nullptr) {
     live->animation.clear();
     live->animationStartMs = -1;
+  }
+  const bool shifted = state.dx * state.frame != parentShiftX ||
+                       state.dy * state.frame != parentShiftY;
+  if (shifted) {
+    paintedShifts_[id] = {parentShiftX, parentShiftY, state.dx * state.frame,
+                          state.dy * state.frame};
   }
   const auto look = lookStateOf(id);
   // A curtain lifts from `opacity={0}` with an animation running 1 to 0.
@@ -363,6 +371,46 @@ void View::paintNode(int id, PaintState& parent) {
   }
   if (type == kScroll) paintScrollbars(id, rect, state);
   paintFocusMark(id, rect, state);
+}
+
+std::pair<float, float> View::glideShift(Live& live, const Place& place,
+                                         double durationMs) {
+  const float x = place.inParentX;
+  const float y = place.inParentY;
+  // A box appears where it is laid out; only a move glides.
+  if (!live.glidePlaced) {
+    live.glidePlaced = true;
+    live.glideRestX = x;
+    live.glideRestY = y;
+    live.glideFromX = 0;
+    live.glideFromY = 0;
+    return {0, 0};
+  }
+  // What is left of the way: the offset it set off from, eased out.
+  const auto left = [&] {
+    const double run =
+        std::clamp((nowMs_ - live.glideStartMs) / durationMs, 0.0, 1.0);
+    const auto share = static_cast<float>((1 - run) * (1 - run) * (1 - run));
+    return std::pair{live.glideFromX * share, live.glideFromY * share};
+  };
+  const bool moved = x != live.glideRestX || y != live.glideRestY;
+  if (moved) {
+    // A move during a glide sets off from where the box is drawn now, so
+    // quick moves run on into each other.
+    const auto [drawnX, drawnY] = left();
+    live.glideFromX = drawnX + live.glideRestX - x;
+    live.glideFromY = drawnY + live.glideRestY - y;
+    live.glideStartMs = nowMs_;
+    live.glideRestX = x;
+    live.glideRestY = y;
+  }
+  // Under reduced motion it stands in its new place at once.
+  const bool gliding = !reducedMotion_ &&
+                       nowMs_ - live.glideStartMs < durationMs &&
+                       (live.glideFromX != 0 || live.glideFromY != 0);
+  if (!gliding) return {0, 0};
+  repaintAtMs_ = std::min(repaintAtMs_, nowMs_);
+  return left();
 }
 
 void View::paintBox(int id, const UiRect& rect, PaintState& state,

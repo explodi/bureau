@@ -797,6 +797,8 @@ void View::layoutTree() {
             UiRect{originX + YGNodeLayoutGetLeft(built.yoga) * scale,
                    originY + YGNodeLayoutGetTop(built.yoga) * scale,
                    width * scale, height * scale}, space);
+        placed.inParentX = YGNodeLayoutGetLeft(built.yoga) * scale;
+        placed.inParentY = YGNodeLayoutGetTop(built.yoga) * scale;
         placed.scale = scale;
         const float left = placed.rect.x;
         const float top = placed.rect.y;
