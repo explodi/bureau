@@ -17,12 +17,18 @@ import { getFocusedNode, host, type HostNode } from "bureau/host";
  * THE TAB'S FORM is a trapezoid slanted 10px on both sides, Mac OS 8's tab
  * panel: an ink shape with the face laid a pixel inside it, open at the
  * bottom, so the open tab and the page read as one piece of card. The host
- * draws the card whole, a slanted box, at the screen's own pixels. Each tab is pulled left by both its slants, so neighbours interlock the way
- * filed card does, and the open tab lies over both of its neighbours.
+ * draws the card whole, a slanted box, at the screen's own pixels. Each tab is
+ * pulled left by both its slants, so neighbours interlock the way filed card
+ * does, and the open tab lies over both of its neighbours.
+ *
+ * Every tab is a standard control's height, and that whole box takes the
+ * pointer. The card filed behind the page is drawn shorter at the box's foot,
+ * so the strip stays one control tall while the open tab still stands above
+ * the rest.
  */
 import React, { useRef, useState } from "react";
 import { Box, type Ink, type KeyEvent, Text } from "bureau/primitives";
-import { EFFECTS } from "./tokens.ts";
+import { CONTROL_METRICS, EFFECTS } from "./tokens.ts";
 import {
   GamepadPriority,
   useGamepadFrame,
@@ -59,9 +65,9 @@ type TabsProps<Id extends string> = {
 /** The tab's slant, and how far each tab is pulled over the one before. */
 const SLANT = 10;
 const INTERLOCK = -(SLANT * 2) + 2;
+const TAB_HEIGHT = CONTROL_METRICS.standard.height;
 /** The open tab stands 4px taller than the card filed behind it. */
-const TAB_HEIGHT = 36;
-const OPEN_TAB_HEIGHT = 40;
+const FILED_CARD_DROP = 4;
 
 const BADGE_TILES = {
   alert: { fill: "fill-alert", ink: "knockout-alert" },
@@ -138,7 +144,7 @@ function TabKey(
   const setStatus = useStatus();
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
-  const height = selected ? OPEN_TAB_HEIGHT : TAB_HEIGHT;
+  const drop = selected ? 0 : FILED_CARD_DROP;
   // Card filed behind the page lifts under the pointer; the open tab never
   // changes at all.
   const face: Ink = hovered && !selected ? "face-light" : "face";
@@ -156,11 +162,11 @@ function TabKey(
       ink="ink"
       align="center"
       gap={6}
-      height={height}
-      minHeight={height}
+      height={TAB_HEIGHT}
+      minHeight={TAB_HEIGHT}
       minWidth={36}
       shrink={0}
-      padding={[0, SLANT + 14]}
+      padding={[drop, SLANT + 14, 0, SLANT + 14]}
       margin={interlocks ? [0, 0, 0, INTERLOCK] : 0}
       onPress={onPress}
       onKey={onKey}
@@ -175,17 +181,18 @@ function TabKey(
     >
       <Box
         position="absolute"
-        inset={{ top: 0, left: 0, right: 0, bottom: 0 }}
+        inset={{ top: drop, left: 0, right: 0, bottom: 0 }}
         slant={SLANT}
         fill={face}
         surface="tab-top"
         passThrough
-      />
-      {
-        // Any focus, not only one the keyboard moved: a bumper moves focus
-        // from code, and the tab it lands on must show it.
-        focused && <TabFocusMark height={height} />
-      }
+      >
+        {
+          // Any focus, not only one the keyboard moved: a bumper moves focus
+          // from code, and the tab it lands on must show it.
+          focused && <TabFocusMark height={TAB_HEIGHT - drop} />
+        }
+      </Box>
       {leadingGlyph}
       <Text typeStyle="ui-14-tab-solid" nowrap>{tab.label}</Text>
       {badge && (
