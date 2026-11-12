@@ -95,13 +95,19 @@ class Host {
     std::string step;
     /** The timer, immediate or frame callback the step is in, by its
      * function's name ("anonymous" without one); empty outside them. React's
-     * scheduler is "performWorkUntilDeadline". */
+     * scheduler is "performWorkUntilDeadline". The microtasks a callback
+     * queued run after it returns, as "<name> > microtasks": React's
+     * synchronous renders are among them. */
     std::string callback;
     std::size_t tasks = 0;
     std::size_t tasksRun = 0;
     /** How long the step has run; the rest of the turn went to the steps
      * before it. */
     double stepMs = 0;
+    /** The longest of those earlier steps and how long it ran; empty while
+     * the turn is in its first. */
+    std::string slowestStep;
+    double slowestStepMs = 0;
   };
   Turn turn() const;
 

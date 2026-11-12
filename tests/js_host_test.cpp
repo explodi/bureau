@@ -240,6 +240,47 @@ TEST_CASE("a held timer names its callback to another thread") {
   CHECK(host.take_error().empty());
 }
 
+TEST_CASE("a held frame names its callback's microtasks apart from it") {
+  bureau::js::Host::Options options;
+  options.realClock = true;
+  bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE), options);
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto ready = entered.get_future();
+  auto held = release.get_future();
+  host.invoke([&](facebook::jsi::Runtime& runtime) {
+    runtime.global().setProperty(
+        runtime, "render",
+        facebook::jsi::Function::createFromHostFunction(
+            runtime, facebook::jsi::PropNameID::forAscii(runtime, "render"),
+            0,
+            [&](facebook::jsi::Runtime&, const facebook::jsi::Value&,
+                const facebook::jsi::Value*, size_t) {
+              entered.set_value();
+              held.wait();
+              return facebook::jsi::Value::undefined();
+            }));
+    auto drawCity = facebook::jsi::Function::createFromHostFunction(
+        runtime, facebook::jsi::PropNameID::forAscii(runtime, "drawCity"), 1,
+        [](facebook::jsi::Runtime& runtime, const facebook::jsi::Value&,
+           const facebook::jsi::Value*, size_t) {
+          runtime.queueMicrotask(
+              runtime.global().getPropertyAsFunction(runtime, "render"));
+          return facebook::jsi::Value::undefined();
+        });
+    runtime.global()
+        .getPropertyAsFunction(runtime, "requestAnimationFrame")
+        .call(runtime, drawCity);
+  });
+  host.frame(0);
+  ready.wait();
+  const auto turn = host.turn();
+  release.set_value();
+  CHECK(turn.step == "animation frames");
+  CHECK(turn.callback == "drawCity > microtasks");
+  CHECK(host.take_error().empty());
+}
+
 TEST_CASE("a held turn times its step apart from the steps before it") {
   bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
   std::promise<void> blocking;
@@ -272,6 +313,8 @@ TEST_CASE("a held turn times its step apart from the steps before it") {
   CHECK(turn.step == "tickEvents");
   CHECK(turn.callback.empty());
   CHECK(busyMs - turn.stepMs >= 50);
+  CHECK(turn.slowestStep == "worldLoaded");
+  CHECK(turn.slowestStepMs >= 50);
   CHECK(host.take_error().empty());
 }
 

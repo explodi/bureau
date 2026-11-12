@@ -213,16 +213,29 @@ struct Host::Impl {
   }
 
   void set_step(std::string step) {
+    const std::int64_t now = steady_ns();
     std::lock_guard lock(turnMutex);
+    const double finishedMs = static_cast<double>(now - stepStartedNs) / 1e6;
+    const bool slowest = !turn.step.empty() && finishedMs > turn.slowestStepMs;
+    if (slowest) {
+      turn.slowestStep = std::move(turn.step);
+      turn.slowestStepMs = finishedMs;
+    }
     turn.step = std::move(step);
     turn.callback.clear();
-    stepStartedNs = steady_ns();
+    stepStartedNs = now;
   }
 
   void set_callback(const jsi::Function& callback) {
     std::string name = name_of(*runtime, callback);
     std::lock_guard lock(turnMutex);
     turn.callback = std::move(name);
+  }
+
+  /** The running callback has returned; the microtasks it queued run next. */
+  void enter_microtasks() {
+    std::lock_guard lock(turnMutex);
+    turn.callback += " > microtasks";
   }
 
   void report(const std::string& message) {
@@ -414,6 +427,7 @@ struct Host::Impl {
       immediate.pop_front();
       set_callback(callback);
       guarded([&] { callback.call(*runtime); });
+      enter_microtasks();
       guarded([&] { drain(*runtime); });
     }
     for (;;) {
@@ -434,6 +448,7 @@ struct Host::Impl {
           timer.callback.call(*runtime);
         }
       });
+      enter_microtasks();
       guarded([&] { drain(*runtime); });
       running_timer_id = 0;
       if (timer.interval > 0 && !cancel_running_timer) {
@@ -450,6 +465,7 @@ struct Host::Impl {
     for (auto& [id, callback] : due) {
       set_callback(callback);
       guarded([&] { callback.call(*runtime, time); });
+      enter_microtasks();
       guarded([&] { drain(*runtime); });
     }
   }
@@ -504,8 +520,13 @@ struct Host::Impl {
       tickTagged = false;
       {
         std::lock_guard lock(turnMutex);
-        turn = Host::Turn{
-            .step = "", .callback = "", .tasks = batch.size(), .tasksRun = 0};
+        turn = Host::Turn{.step = "",
+                          .callback = "",
+                          .tasks = batch.size(),
+                          .tasksRun = 0,
+                          .stepMs = 0,
+                          .slowestStep = "",
+                          .slowestStepMs = 0};
         stepStartedNs = turnStartedNs;
       }
       for (auto& task : batch) {
