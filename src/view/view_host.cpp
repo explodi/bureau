@@ -246,6 +246,8 @@ Json View::contentExtent(int id) {
 }
 
 void View::placeLayer(int id, float x, float y) {
+  // A place given to no layer would wait for whichever next takes the id.
+  if (tree_.node(id) == nullptr) return;
   placedLayers_[id] = {x, y};
   layoutDirty_ = true;
 }

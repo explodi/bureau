@@ -150,6 +150,15 @@ int View::hitTest(float x, float y) const {
   return 0;
 }
 
+std::string View::pointerCursor() const {
+  for (const int id : hoverChain_) {
+    const Node* found = node(id);
+    if (found == nullptr) continue;
+    if (std::string cursor = textProp(*found, "cursor"); !cursor.empty()) return cursor;
+  }
+  return {};
+}
+
 void View::updateHover(int target) {
   std::vector<int> placedChain;
   for (int current = target; current > 0; current = placedParent(current)) {
@@ -249,6 +258,7 @@ void View::setFocus(int id, bool visible) {
   }
   focused_ = id;
   focusVisible_ = visible;
+  composing_.clear();
   paintDirty_ = true;
   if (before != 0) {
     live_[before].held = false;
@@ -470,6 +480,15 @@ void View::repeatScrollbar() {
            live.scrollY + (horizontal ? 0 : travel), true);
 }
 
+void View::surfaceEvent(const char* kind, const PointerEvent& event,
+                        const Json& args) {
+  if (!surfaceListener_) {
+    call(0, "__surface", Json::array({kind, args}));
+    return;
+  }
+  surfaceListener_(kind, event);
+}
+
 void View::pointer(const PointerEvent& event) {
   ensureLayout();
   const float x = event.x / uiScale_;
@@ -541,15 +560,14 @@ void View::pointer(const PointerEvent& event) {
       return;
     }
     if (overSurface(target)) {
-      call(0, "__surface",
-           Json::array({"wheel", Json{{"deltaY", event.deltaY}}}));
+      surfaceEvent("wheel", event, Json{{"deltaY", event.deltaY}});
     }
     return;
   }
 
   if (event.kind == PointerEvent::Kind::Leave) {
     updateHover(0);
-    if (surface_ != 0) call(0, "__surface", Json::array({"leave", surface}));
+    if (surface_ != 0) surfaceEvent("leave", event, surface);
     return;
   }
 
@@ -616,9 +634,11 @@ void View::pointer(const PointerEvent& event) {
     else if (press_.moved) updateHover(0);
     callHoverMove(x, y);
     const bool overCity = overSurface(target);
-    if (overCity || press_.node == 0) {
-      call(0, "__surface",
-           Json::array({overCity ? "move" : "leave", surface}));
+    // A host's drag that began on its surface follows the pointer over the UI.
+    if (surfaceListener_ && surfaceDrag_) {
+      surfaceEvent("move", event, surface);
+    } else if (overCity || press_.node == 0) {
+      surfaceEvent(overCity ? "move" : "leave", event, surface);
     }
     const bool moved = std::hypot(x - presenceX_, y - presenceY_) >= 3;
     if (event.touch || moved) {
@@ -649,8 +669,26 @@ void View::pointer(const PointerEvent& event) {
     if (fingerScroll == 0) updateHover(target);
     call(0, "__pointerDown",
          Json::array({chain, event.touch ? "touch" : "mouse"}));
-    if (overSurface(target)) call(0, "__surface", Json::array({"down", surface}));
+    if (overSurface(target)) {
+      surfaceDrag_ = true;
+      surfaceEvent("down", event, surface);
+    }
 
+    if (event.button == 1 || event.button == 2) {
+      // The middle or secondary button goes to the innermost box that
+      // asked for it; the rest of the UI hears nothing of it, as before.
+      const char* wanted = event.button == 2 ? "onSecondaryPress" : "onMiddlePress";
+      aux_ = AuxPress{};
+      for (int current = target; current > 0;) {
+        const Node* found = node(current);
+        if (found == nullptr) break;
+        if (found->type == kBox && flag(*found, wanted) && !flag(*found, "disabled")) {
+          aux_ = AuxPress{current, event.button, x, y};
+          break;
+        }
+        current = found->parent;
+      }
+    }
     if (event.button != 0) return;
     if (!event.touch && beginScrollbar(target, x, y)) return;
     press_ = Press{};
@@ -709,6 +747,29 @@ void View::pointer(const PointerEvent& event) {
     return;
   }
 
+  if (event.kind == PointerEvent::Kind::Up && aux_.node != 0 && event.button == aux_.button) {
+    // Let go over the same box without travelling: its press.
+    const AuxPress aux = aux_;
+    aux_ = AuxPress{};
+    constexpr float kSlop = 8;
+    const bool still = std::abs(x - aux.x) < kSlop && std::abs(y - aux.y) < kSlop;
+    bool over = false;
+    for (int current = hitTest(x, y); current > 0 && !over;) {
+      const Node* found = node(current);
+      if (found == nullptr) break;
+      over = current == aux.node;
+      current = found->parent;
+    }
+    if (still && over) {
+      Json press{{"touch", event.touch}};
+      if (event.shift) press["shift"] = true;
+      if (event.control) press["control"] = true;
+      if (event.alt) press["alt"] = true;
+      if (event.meta) press["meta"] = true;
+      call(aux.node, aux.button == 2 ? "onSecondaryPress" : "onMiddlePress",
+           Json::array({press}));
+    }
+  }
   if (event.kind == PointerEvent::Kind::Up ||
       event.kind == PointerEvent::Kind::Cancel) {
     const bool cancelled = event.kind == PointerEvent::Kind::Cancel;
@@ -757,13 +818,14 @@ void View::pointer(const PointerEvent& event) {
         if (!feedback.empty() && feedback != "none") {
           call(0, "__feedback", Json::array({feedback}));
         }
-        callPress(pressed.node, *found, pressed.touch);
+        callPress(pressed.node, *found, pressed.touch, &event);
       }
     }
     if (surface_ != 0) {
       const bool overCity = overSurface(hitTest(x, y));
-      if (overCity) call(0, "__surface", Json::array({"up", surface}));
-      call(0, "__surface", Json::array({"upAnywhere", surface}));
+      if (overCity) surfaceEvent("up", event, surface);
+      surfaceEvent("upAnywhere", event, surface);
+      surfaceDrag_ = false;
     }
     // A finger that scrolled, or was cancelled first, leaves nothing hovered.
     const bool fingerInScroll = pressed.touch && pressed.scroll != 0;
@@ -851,6 +913,30 @@ void View::editField(int id, const KeyEvent& event) {
     }
     return;
   }
+  // The clipboard's keys. A field selects only whole (Mod A), so copying
+  // and cutting take it all.
+  const bool mod = event.meta || event.control;
+  const char letter = event.key.size() == 1
+                          ? static_cast<char>(std::tolower(
+                                static_cast<unsigned char>(event.key[0])))
+                          : '\0';
+  if (mod && letter == 'a') {
+    selectAll_ = true;
+    paintDirty_ = true;
+    return;
+  }
+  if (mod && (letter == 'c' || letter == 'x')) {
+    if (selectAll_ && writeClipboard_ && !value.empty()) writeClipboard_(value);
+    if (selectAll_ && letter == 'x') {
+      selectAll_ = false;
+      changed("", 0);
+    }
+    return;
+  }
+  if (mod && letter == 'v') {
+    if (readClipboard_) typed(readClipboard_());
+    return;
+  }
   if (selectAll_ &&
       (event.key == "Backspace" || event.key == "Delete")) {
     selectAll_ = false;
@@ -911,9 +997,10 @@ void View::deliverKey(KeyEvent event) {
   call(0, "__keyHold", Json::array({key}));
   if (truthy(call(0, "__captureKeys", Json::array({key})))) return;
   if (focused_ != 0 && dispatchKeyChain(focused_, event)) return;
-  // A field edits with the keys that are not characters; the characters
-  // arrive as typed text.
-  if (typing && (event.key.size() > 1 || event.key == "Enter")) {
+  // A field edits with the keys that are not characters, and with the
+  // clipboard's; the characters arrive as typed text.
+  const bool clipboardKey = event.meta || event.control;
+  if (typing && (event.key.size() > 1 || event.key == "Enter" || clipboardKey)) {
     editField(focused_, event);
   }
   // Every key leaves the UI for the game's shortcuts, which skip what a
@@ -921,7 +1008,22 @@ void View::deliverKey(KeyEvent event) {
   call(0, "__observeKeys", Json::array({key, typing}));
 }
 
+void View::compose(const std::string& text) {
+  const Node* found = node(focused_);
+  const bool field = found != nullptr && found->type == kField;
+  const std::string next = field ? text : std::string();
+  if (next == composing_) return;
+  composing_ = next;
+  caretMovedMs_ = nowMs_;
+  paintDirty_ = true;
+}
+
 void View::typed(const std::string& entered) {
+  // Typed text is what was composed, committed.
+  if (!composing_.empty()) {
+    composing_.clear();
+    paintDirty_ = true;
+  }
   const Node* found = node(focused_);
   if (found == nullptr || found->type != kField) return;
   if (flag(*found, "disabled") || flag(*found, "readOnly")) return;

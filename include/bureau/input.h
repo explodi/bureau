@@ -15,11 +15,19 @@ struct PointerEvent {
    * buttons (back, forward). */
   int button = 0;
   bool shift = false;
+  /** The other modifiers, for a host that reads them (an editor's
+   * Ctrl-click); a host that does not leaves them false. */
+  bool control = false;
+  bool alt = false;
+  bool meta = false;
   bool touch = false;
   int id = 0;
   /** A wheel's travel, in points. */
   float deltaX = 0;
   float deltaY = 0;
+  /** A wheel from a trackpad or another smooth surface rather than a
+   * mouse's notches, as far as the host can tell. */
+  bool precise = false;
 };
 
 /** A key: `key` what it types or does ("a", "Enter", "ArrowLeft"), `code` where

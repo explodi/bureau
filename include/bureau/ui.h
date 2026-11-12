@@ -90,6 +90,17 @@ class Ui {
     std::string debugBundle;
     /** Holds animation time still, for tests and recorded benches. */
     std::optional<double> frozenClock;
+    /** Takes the game's surface's pointer events natively, on the UI's
+     * thread, instead of sending them to `__surface`: "down", "move", "up",
+     * "upAnywhere", "leave" and "wheel", in window points. A drag that
+     * began on the surface keeps sending "move" over the UI until it ends.
+     * Empty sends them to JavaScript, as before. */
+    std::function<void(const std::string& kind, const PointerEvent& event)>
+        surfacePointer;
+    /** The system clipboard: read for a field's paste (Mod V), written for
+     * its copy and cut (Mod C, Mod X). Empty leaves fields without them. */
+    std::function<std::string()> readClipboard;
+    std::function<void(const std::string& text)> writeClipboard;
   };
 
   explicit Ui(Options options);
@@ -117,6 +128,10 @@ class Ui {
     std::vector<AtlasUpload> uploads;
     /** The pointer is over something that presses. */
     bool pressable = false;
+    /** The cursor the box under the pointer names (`cursor`): "text",
+     * "move", "grab", "crosshair", "ew-resize", "ns-resize",
+     * "not-allowed" or "pointer"; empty where none does. */
+    std::string cursor;
     /** The UI says it is still loading. */
     bool busy = true;
     /** The focused field's state, as JSON: where a platform's text input goes. */
@@ -134,6 +149,9 @@ class Ui {
   void key(const KeyEvent& event);
   /** Text the keyboard typed into the focused field. */
   void typed(std::string text);
+  /** An input method's text being composed in the focused field, shown
+   * until `typed` commits it; empty cancels it. */
+  void compose(std::string text);
   /** A platform text input's edit: {value,selectionStart,selectionEnd,submit?},
    * selections in UTF-16 units. */
   void edit(nlohmann::json edit);

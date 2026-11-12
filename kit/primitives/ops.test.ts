@@ -54,3 +54,17 @@ Deno.test("a prop update carries only changed values and removals", () => {
     label: null,
   });
 });
+
+Deno.test("a box's cursor reaches the native tree as its name", () => {
+  assertEquals(changedProps({}, { cursor: "ew-resize" }), {
+    cursor: "ew-resize",
+  });
+});
+
+Deno.test("the secondary and middle presses reach it as flags", () => {
+  const press = () => {};
+  assertEquals(
+    changedProps({}, { onSecondaryPress: press, onMiddlePress: press }),
+    { onSecondaryPress: true, onMiddlePress: true },
+  );
+});

@@ -234,6 +234,20 @@ TEST_CASE("a click on a box tells its press it was no finger") {
         Json::array({Json{{"touch", false}}}));
 }
 
+TEST_CASE("a click with Shift and Ctrl held tells its press so") {
+  Fixture fixture;
+  fixture.commit(pressableBox());
+  bureau::PointerEvent down{bureau::PointerEvent::Kind::Down, 10, 10};
+  bureau::PointerEvent up{bureau::PointerEvent::Kind::Up, 10, 10};
+  up.shift = true;
+  up.control = true;
+  fixture.view.pointer(down);
+  fixture.view.pointer(up);
+  REQUIRE(fixture.handled("onPress").size() == 1);
+  CHECK(fixture.handled("onPress").front().args ==
+        Json::array({Json{{"touch", false}, {"shift", true}, {"control", true}}}));
+}
+
 TEST_CASE("a box pressed by the host tells its press it was no finger") {
   Fixture fixture;
   fixture.commit(pressableBox());
@@ -688,6 +702,36 @@ TEST_CASE("a screen-anchored layer stands its distance from the edges") {
                      .append(0, 1));
   CHECK(fixture.rect(3).x == doctest::Approx(330));
   CHECK(fixture.rect(3).y == doctest::Approx(250));
+}
+
+TEST_CASE("a place given to a removed layer's id moves no layer that takes it") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"id", "ui-root"},
+                              {"position", "absolute"},
+                              {"inset", {{"top", 0}, {"right", 0}, {"bottom", 0},
+                                         {"left", 0}}}})
+                     .create(2, "bureau-layer")
+                     .create(3, "bureau-box", {{"width", 50}, {"height", 30}})
+                     .append(2, 3)
+                     .append(1, 2)
+                     .append(0, 1));
+  Stream removeHint;
+  // The layer leaves its parent, then its box and the layer are destroyed.
+  removeHint.operations = {5, 1, 2, 7, 3, 7, 2};
+  fixture.commit(removeHint);
+  // The program still holds the hint and parks it once more.
+  fixture.view.placeLayer(2, -9999, -9999);
+  fixture.commit(Stream()
+                     .create(2, "bureau-layer",
+                             {{"anchor", {{"kind", "screen"}, {"left", 20},
+                                          {"top", 20}}}})
+                     .create(3, "bureau-box", {{"width", 50}, {"height", 30}})
+                     .append(2, 3)
+                     .append(1, 2));
+  CHECK(fixture.rect(3).x == doctest::Approx(20));
+  CHECK(fixture.rect(3).y == doctest::Approx(20));
 }
 
 TEST_CASE("a layer that takes a removed layer's id stands at its own place") {
@@ -1339,6 +1383,118 @@ TEST_CASE("a field types at its caret and submits on Enter") {
   CHECK(fixture.handled("onSubmit").back().args == Json::array({"Mar"}));
 }
 
+namespace {
+
+bureau::KeyEvent commandKey(const std::string& letter) {
+  bureau::KeyEvent key;
+  key.key = letter;
+  key.meta = true;
+  return key;
+}
+
+}  // namespace
+
+namespace {
+
+/** A press and release of a button at a point. */
+void clickAt(Fixture& fixture, float x, float y, int button = 0) {
+  auto down = pointer(bureau::PointerEvent::Kind::Down, x, y);
+  down.button = button;
+  auto up = pointer(bureau::PointerEvent::Kind::Up, x, y);
+  up.button = button;
+  fixture.view.pointer(down);
+  fixture.view.pointer(up);
+}
+
+}  // namespace
+
+TEST_CASE("a box pressed twice in quick succession hears a press count of 2") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", {{"onPress", true}, {"width", 40}, {"height", 40}})
+                     .append(0, 1));
+  clickAt(fixture, 10, 10);
+  clickAt(fixture, 10, 10);
+  CHECK(fixture.handled("onPress").back().args == Json::array({{{"touch", false}, {"count", 2}}}));
+}
+
+TEST_CASE("a second press half a second later is a press of its own") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", {{"onPress", true}, {"width", 40}, {"height", 40}})
+                     .append(0, 1));
+  clickAt(fixture, 10, 10);
+  fixture.view.frame(500);
+  clickAt(fixture, 10, 10);
+  CHECK(fixture.handled("onPress").back().args == Json::array({{{"touch", false}}}));
+}
+
+TEST_CASE("a right click goes to the box that asked for the secondary press") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"onPress", true}, {"onSecondaryPress", true}, {"width", 40},
+                              {"height", 40}})
+                     .append(0, 1));
+  clickAt(fixture, 10, 10, 2);
+  CHECK(fixture.handled("onSecondaryPress").size() == 1);
+  CHECK(fixture.handled("onPress").empty());
+}
+
+TEST_CASE("a middle click on a box without onMiddlePress presses nothing") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", {{"onPress", true}, {"width", 40}, {"height", 40}})
+                     .append(0, 1));
+  clickAt(fixture, 10, 10, 1);
+  CHECK(fixture.handled("onPress").empty());
+  CHECK(fixture.handled("onMiddlePress").empty());
+}
+
+TEST_CASE("Mod A then Mod C puts a field's text on the clipboard") {
+  Fixture fixture;
+  std::string clipboard;
+  fixture.view.setClipboard(nullptr, [&](const std::string& text) { clipboard = text; });
+  fixture.commit(Stream().create(1, "bureau-field", {{"value", "Marina"}}).append(0, 1));
+  fixture.view.focus(1, false);
+  fixture.view.key(commandKey("a"));
+  fixture.view.key(commandKey("c"));
+  CHECK(clipboard == "Marina");
+}
+
+TEST_CASE("Mod C with nothing selected leaves the clipboard alone") {
+  Fixture fixture;
+  std::string clipboard = "before";
+  fixture.view.setClipboard(nullptr, [&](const std::string& text) { clipboard = text; });
+  fixture.commit(Stream().create(1, "bureau-field", {{"value", "Marina"}}).append(0, 1));
+  fixture.view.focus(1, false);
+  fixture.view.key(commandKey("c"));
+  CHECK(clipboard == "before");
+}
+
+TEST_CASE("Mod X takes a selected field's text and empties it") {
+  Fixture fixture;
+  std::string clipboard;
+  fixture.view.setClipboard(nullptr, [&](const std::string& text) { clipboard = text; });
+  fixture.commit(Stream()
+                     .create(1, "bureau-field", {{"value", "Marina"}, {"onChange", true}})
+                     .append(0, 1));
+  fixture.view.focus(1, false);
+  fixture.view.key(commandKey("a"));
+  fixture.view.key(commandKey("x"));
+  CHECK(clipboard == "Marina");
+  CHECK(fixture.handled("onChange").back().args == Json::array({""}));
+}
+
+TEST_CASE("Mod V types the clipboard's text at the caret") {
+  Fixture fixture;
+  fixture.view.setClipboard([] { return std::string("ina"); }, nullptr);
+  fixture.commit(Stream()
+                     .create(1, "bureau-field", {{"value", "Mar"}, {"onChange", true}})
+                     .append(0, 1));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Down, 10, 10));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Up, 10, 10));
+  fixture.view.key(commandKey("v"));
+  CHECK(fixture.handled("onChange").back().args == Json::array({"Marina"}));
+}
+
 TEST_CASE("native text input preserves UTF-16 selection and composition results") {
   Fixture fixture;
   fixture.commit(Stream().create(1, "bureau-field",
@@ -1608,6 +1764,27 @@ TEST_CASE("a slider's control carries its decimal step and ends exactly") {
   CHECK(fixture.view.control(1) == Json{{"kind", "range"}, {"disabled", false},
                                         {"value", "0.1"}, {"min", 0}, {"max", 0.3},
                                         {"step", 0.1}});
+}
+
+TEST_CASE("a host listening to its surface keeps a drag that leaves it") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box", {{"direction", "row"}})
+                     .create(2, "bureau-box", {{"width", 200}, {"height", 100}})
+                     .create(3, "bureau-box",
+                             {{"width", 100}, {"height", 100}, {"onPress", true}})
+                     .append(1, 2)
+                     .append(1, 3)
+                     .append(0, 1));
+  fixture.view.setSurface(2);
+  std::vector<std::string> heard;
+  fixture.view.setSurfaceListener(
+      [&](const std::string& kind, const bureau::PointerEvent&) { heard.push_back(kind); });
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Down, 50, 50));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Move, 250, 50));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Up, 250, 50));
+  CHECK(heard == std::vector<std::string>{"down", "move", "upAnywhere"});
+  CHECK(fixture.handled("__surface").empty());
 }
 
 TEST_CASE("the cursor reaches the host in UI pixels and the city in window points") {
@@ -3366,4 +3543,76 @@ TEST_CASE(
             enabled->quads.begin(), enabled->quads.end(),
             [](const bureau::Quad& quad) { return quad.stipple != 0; }) == 0);
   CHECK(fixture.rect(1).height == 33);
+}
+
+TEST_CASE("the pointer takes the cursor of the innermost box that names one") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box", {{"cursor", "move"}, {"width", 80}, {"height", 80}})
+                     .create(2, "bureau-box", {{"cursor", "ew-resize"}, {"width", 20}, {"height", 20}})
+                     .append(1, 2)
+                     .append(0, 1));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Move, 10, 10));
+  CHECK_EQ(fixture.view.pointerCursor(), "ew-resize");
+}
+
+TEST_CASE("a box with no cursor of its own shows its parent's") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box", {{"cursor", "move"}, {"width", 80}, {"height", 80}})
+                     .create(2, "bureau-box", {{"width", 20}, {"height", 20}})
+                     .append(1, 2)
+                     .append(0, 1));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Move, 10, 10));
+  CHECK_EQ(fixture.view.pointerCursor(), "move");
+}
+
+TEST_CASE("over no box that names a cursor the pointer asks for none") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", {{"width", 80}, {"height", 80}}).append(0, 1));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Move, 10, 10));
+  CHECK_EQ(fixture.view.pointerCursor(), "");
+}
+
+TEST_CASE("an input method's composition waits in the focused field and changes nothing") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-field", {{"value", "Mar"}, {"onChange", true}})
+                     .append(0, 1));
+  fixture.view.focus(1, true);
+  fixture.view.compose("\u306b\u307b");
+  CHECK_EQ(fixture.view.composing(), "\u306b\u307b");
+  CHECK(fixture.handled("onChange").empty());
+}
+
+TEST_CASE("typed text commits a composition in its place") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-field", {{"value", "Mar"}, {"onChange", true}})
+                     .append(0, 1));
+  fixture.view.focus(1, true);
+  fixture.view.compose("\u306b\u307b");
+  fixture.view.typed("\u65e5\u672c");
+  CHECK_EQ(fixture.view.composing(), "");
+  CHECK(fixture.handled("onChange").back().args == Json::array({"Mar\u65e5\u672c"}));
+}
+
+TEST_CASE("a composition is dropped when the field loses the keyboard") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-field", {{"value", ""}})
+                     .create(2, "bureau-field", {{"value", ""}})
+                     .append(0, 1)
+                     .append(0, 2));
+  fixture.view.focus(1, true);
+  fixture.view.compose("\u306b");
+  fixture.view.focus(2, true);
+  CHECK_EQ(fixture.view.composing(), "");
+}
+
+TEST_CASE("with no field focused there is nothing to compose into") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", {{"width", 40}, {"height", 40}}).append(0, 1));
+  fixture.view.compose("\u306b");
+  CHECK_EQ(fixture.view.composing(), "");
 }

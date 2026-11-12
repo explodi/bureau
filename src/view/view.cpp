@@ -2,6 +2,7 @@
 // target, the UI root by default), and what a node inherits from its
 // ancestors: the chrome, the ink, the type, and a look's state.
 #include <algorithm>
+#include <cmath>
 
 #include "view_internal.h"
 
@@ -347,9 +348,25 @@ bool View::boxHasPress(const Node& box) const {
   return flag(box, "onPress") || flag(box, "onHoldChange");
 }
 
-void View::callPress(int id, const Node& box, bool touch) {
+void View::callPress(int id, const Node& box, bool touch, const PointerEvent* pointer) {
   if (!flag(box, "onPress")) return;
-  call(id, "onPress", Json::array({Json{{"touch", touch}}}));
+  // A modifier is named only while held, so a plain press reads as before.
+  Json press{{"touch", touch}};
+  if (pointer && pointer->shift) press["shift"] = true;
+  if (pointer && pointer->control) press["control"] = true;
+  if (pointer && pointer->alt) press["alt"] = true;
+  if (pointer && pointer->meta) press["meta"] = true;
+  // The same box pressed again soon and close by counts up, as a double
+  // click; a key's press starts over.
+  constexpr double kDoubleMs = 400;
+  constexpr float kDoubleSlop = 6;
+  const bool again = pointer && lastPress_.node == id && nowMs_ - lastPress_.ms < kDoubleMs &&
+                     std::abs(pointer->x - lastPress_.x) < kDoubleSlop &&
+                     std::abs(pointer->y - lastPress_.y) < kDoubleSlop;
+  lastPress_ = LastPress{pointer ? id : 0, nowMs_, pointer ? pointer->x : 0,
+                         pointer ? pointer->y : 0, again ? lastPress_.count + 1 : 1};
+  if (lastPress_.count > 1) press["count"] = lastPress_.count;
+  call(id, "onPress", Json::array({press}));
 }
 
 bool View::canFocus(int id) const {

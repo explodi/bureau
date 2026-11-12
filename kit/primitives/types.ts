@@ -42,6 +42,17 @@ export type Role =
 
 /** What the native view and the capture harness read of a node beyond its
  * looks: no accessibility layer reads more. */
+/** The host's named cursors: what a box can ask the pointer to look like. */
+export type Cursor =
+  | "pointer"
+  | "text"
+  | "move"
+  | "grab"
+  | "crosshair"
+  | "ew-resize"
+  | "ns-resize"
+  | "not-allowed";
+
 export interface Access {
   /** Semantic name retained in the native node tree, independent of its art. */
   label?: string;
@@ -150,12 +161,20 @@ export interface BoxProps extends Layout, Access {
   navigationGrid?: string;
   hitSlop?: number;
   passThrough?: boolean;
+  /** The pointer's look over the box, where the host draws one: the
+   * innermost box under the pointer that names a cursor decides. */
+  cursor?: Cursor;
   animation?: Animation;
   /** How long the animation waits before it starts: a deal's stagger. */
   animationDelayMs?: number;
   /** How long one run takes, where the caller sets it: a hold's fill. */
   animationDurationMs?: number;
   onPress?: (press: Press) => void;
+  /** The secondary button (a right click) let go over the box: a context
+   * menu's. The innermost box that has one hears it. */
+  onSecondaryPress?: (press: Press) => void;
+  /** The middle button let go over the box: a tab's close. */
+  onMiddlePress?: (press: Press) => void;
   /**
    * The press as it is held: true when the primary pointer, Space or Enter
    * goes down on the box, false when it lets go there or the press is lost
@@ -198,6 +217,14 @@ export interface Press {
    * first, so a tooltip was never read.
    */
   touch: boolean;
+  /** The modifiers the pointer held; none for a key or a pad. */
+  shift?: boolean;
+  control?: boolean;
+  alt?: boolean;
+  meta?: boolean;
+  /** The second (or later) press of the same box in quick succession: a
+   * double click is 2. Absent for a single press. */
+  count?: number;
 }
 
 export interface Drag {

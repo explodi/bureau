@@ -99,6 +99,11 @@ class View {
   void key(const KeyEvent& event);
   /** Text typed into the focused field. */
   void typed(const std::string& text);
+  /** An input method's text being composed in the focused field: shown at
+   * the caret, underlined, until typed text commits it or empty text
+   * cancels it. */
+  void compose(const std::string& text);
+  const std::string& composing() const { return composing_; }
   nlohmann::json textInput();
   void editText(const nlohmann::json& edit);
   /** A game's event updates bindings without a React commit. */
@@ -123,6 +128,9 @@ class View {
   }
   /** The pointer is over a box that presses: the cursor a hand. */
   bool pointerOverPress() const { return pointerOverPress_; }
+  /** The cursor the innermost box under the pointer that names one asks
+   * for (`cursor`); empty where none does. */
+  std::string pointerCursor() const;
   /** The window's wait cursor: true until declared, or while a visible
    * attached node declares true. This never changes input handling. */
   bool windowBusy() const;
@@ -161,6 +169,20 @@ class View {
   /** The game's own surface: pointer input over it goes to the game rather
    * than the UI (`__surface`). */
   void setSurface(int node) { surface_ = node; }
+  /** Sends the surface's mouse events to the host instead of `__surface`
+   * (Ui::Options::surfacePointer). */
+  void setSurfaceListener(
+      std::function<void(const std::string& kind, const PointerEvent& event)>
+          listener) {
+    surfaceListener_ = std::move(listener);
+  }
+  /** The system clipboard's text, for a field's Mod V, and a place to put
+   * its Mod C and Mod X (Ui::Options::readClipboard). */
+  void setClipboard(std::function<std::string()> read,
+                    std::function<void(const std::string&)> write) {
+    readClipboard_ = std::move(read);
+    writeClipboard_ = std::move(write);
+  }
   void setProjection(const std::array<double, 16>& matrix);
 
   /** What a point in window points hits, with its placed ancestors: each id,
@@ -192,7 +214,9 @@ class View {
   bool boxHasPress(const Node& box) const;
   /** The box's onPress, told whether a finger made it: only a finger leaves
    *  the player without a hover to read a tooltip. */
-  void callPress(int id, const Node& box, bool touch);
+  /** A press's handler, with the modifiers the pointer held (none for a
+   * key or a pad). */
+  void callPress(int id, const Node& box, bool touch, const PointerEvent* pointer = nullptr);
   bool canFocus(int id) const;
   bool disabledWithin(int id) const;
   style::Chrome chromeOf(int id) const;
@@ -384,10 +408,37 @@ class View {
     float velocityX = 0;
     float velocityY = 0;
   } coast_;
+  /** A middle or secondary button held over a box that asked for it. */
+  struct AuxPress {
+    int node = 0;
+    int button = 0;
+    float x = 0;
+    float y = 0;
+  } aux_;
+  /** The last primary press, to count a double press. */
+  struct LastPress {
+    int node = 0;
+    double ms = -1e9;
+    float x = 0;
+    float y = 0;
+    int count = 0;
+  } lastPress_;
   int surface_ = 0;
+  std::function<void(const std::string& kind, const PointerEvent& event)>
+      surfaceListener_;
+  std::function<std::string()> readClipboard_;
+  std::function<void(const std::string&)> writeClipboard_;
+  /** A drag the host's surface began: its moves are the surface's until the
+   * last button is up. */
+  bool surfaceDrag_ = false;
+  /** Sends a surface event to the host's listener, or to JavaScript. */
+  void surfaceEvent(const char* kind, const PointerEvent& event,
+                    const nlohmann::json& args);
   bool keyboardPress_ = false;
   /** When the caret last moved: it shows for half a second after. */
   double caretMovedMs_ = 0;
+  /** The focused field's text an input method is composing; none empty. */
+  std::string composing_;
 };
 
 }  // namespace bureau
