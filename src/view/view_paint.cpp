@@ -27,6 +27,11 @@ struct View::PaintState {
    * animation. */
   float dx = 0;
   float dy = 0;
+  /** What moves the nearest box that clips this subtree, in the node's
+   * pixels: a clip moves with the box it is the edge of, and not with what
+   * moves inside it. */
+  float clipDx = 0;
+  float clipDy = 0;
   float opacity = 1;
   /** The engraved shadow under text, inherited down the subtree. */
   std::optional<style::Color> emboss;
@@ -183,29 +188,36 @@ void View::paintNode(int id, PaintState& parent) {
     state.scale = parent.scale / parent.frame * place.scale;
     state.dx = parent.dx * parent.frame / place.scale;
     state.dy = parent.dy * parent.frame / place.scale;
+    state.clipDx = parent.clipDx * parent.frame / place.scale;
+    state.clipDy = parent.clipDy * parent.frame / place.scale;
     state.frame = place.scale;
   }
   // Hit testing reads the shifts in UI pixels.
   const float parentShiftX = parent.dx * parent.frame;
   const float parentShiftY = parent.dy * parent.frame;
-  const bool parentShifted = parent.dx != 0 || parent.dy != 0;
+  const float clipShiftX = parent.clipDx * parent.frame;
+  const float clipShiftY = parent.clipDy * parent.frame;
+  const bool parentShifted = parent.dx != 0 || parent.dy != 0 ||
+                             parent.clipDx != 0 || parent.clipDy != 0;
   if (parentShifted) {
-    paintedShifts_[id] = {parentShiftX, parentShiftY, parentShiftX, parentShiftY};
+    paintedShifts_[id] = {clipShiftX, clipShiftY, parentShiftX, parentShiftY};
   }
   if (place.clipped) {
     const UiRect clip = inOwnPixels(place.clip, state.frame);
     const Clip& outer = state.list->clips[state.clip];
-    const int left = std::max(outer.x, static_cast<int>(std::floor(
-                                           (clip.x + state.dx) * state.scale)));
-    const int top = std::max(outer.y, static_cast<int>(std::floor(
-                                          (clip.y + state.dy) * state.scale)));
+    const int left = std::max(
+        outer.x,
+        static_cast<int>(std::floor((clip.x + state.clipDx) * state.scale)));
+    const int top = std::max(
+        outer.y,
+        static_cast<int>(std::floor((clip.y + state.clipDy) * state.scale)));
     const int right = std::min(
         outer.x + outer.width,
-        static_cast<int>(std::ceil((clip.x + clip.width + state.dx) *
+        static_cast<int>(std::ceil((clip.x + clip.width + state.clipDx) *
                                    state.scale)));
     const int bottom = std::min(
         outer.y + outer.height,
-        static_cast<int>(std::ceil((clip.y + clip.height + state.dy) *
+        static_cast<int>(std::ceil((clip.y + clip.height + state.clipDy) *
                                    state.scale)));
     state.list->clips.push_back(
         Clip{left, top, std::max(0, right - left), std::max(0, bottom - top)});
@@ -333,7 +345,7 @@ void View::paintNode(int id, PaintState& parent) {
   const bool shifted = state.dx * state.frame != parentShiftX ||
                        state.dy * state.frame != parentShiftY;
   if (shifted) {
-    paintedShifts_[id] = {parentShiftX, parentShiftY, state.dx * state.frame,
+    paintedShifts_[id] = {clipShiftX, clipShiftY, state.dx * state.frame,
                           state.dy * state.frame};
   }
   const auto look = lookStateOf(id);
@@ -357,6 +369,12 @@ void View::paintNode(int id, PaintState& parent) {
   paintBox(id, rect, state, animated);
 
   PaintState inner = state;
+  const bool clipsWhatItHolds =
+      type == kScroll || textProp(*found, "overflow") == "hidden";
+  if (clipsWhatItHolds) {
+    inner.clipDx = state.dx;
+    inner.clipDy = state.dy;
+  }
   if (look.travel) {
     inner.dx += 1;
     inner.dy += 1;

@@ -2056,7 +2056,6 @@ Json glidingBox(int left) {
           {"width", 10},
           {"height", 10},
           {"fill", "db32-black"},
-          {"onHoverChange", true},
           {"glideMs", 100}};
 }
 
@@ -2168,7 +2167,9 @@ TEST_CASE("under reduced motion a moved box stands in its new place at once") {
 
 TEST_CASE("the pointer hits a gliding box where it is drawn") {
   Fixture fixture;
-  fixture.commit(Stream().create(1, "bureau-box", glidingBox(0)).append(0, 1));
+  Json box = glidingBox(0);
+  box["onHoverChange"] = true;
+  fixture.commit(Stream().create(1, "bureau-box", box).append(0, 1));
   REQUIRE(fixture.view.frame(0));
   fixture.commit(Stream().props(1, leftInset(200)));
   REQUIRE(fixture.view.frame(1000));
@@ -2176,6 +2177,65 @@ TEST_CASE("the pointer hits a gliding box where it is drawn") {
   const auto hovers = fixture.handled("onHoverChange");
   REQUIRE(hovers.size() == 1);
   CHECK(hovers[0].args == Json::array({true}));
+}
+
+namespace {
+
+/** A box 200 wide that clips what it holds, holding a box laid out at 100
+ * that `bureau-centre-x` draws at 50, which holds a black box as wide. */
+Stream clippedShiftedBox() {
+  return Stream()
+      .create(1, "bureau-box",
+              {{"width", 200}, {"height", 40}, {"overflow", "hidden"}})
+      .create(2, "bureau-box",
+              {{"position", "absolute"},
+               {"inset", {{"left", 100}, {"top", 0}}},
+               {"width", 100},
+               {"height", 40},
+               {"onHoverChange", true},
+               {"animation", "bureau-centre-x"}})
+      .create(3, "bureau-box",
+              {{"width", 100}, {"height", 40}, {"fill", "db32-black"}})
+      .append(2, 3)
+      .append(1, 2)
+      .append(0, 1);
+}
+
+}  // namespace
+
+TEST_CASE("what a moved box holds is clipped where the clipping box is drawn") {
+  Fixture fixture;
+  fixture.commit(clippedShiftedBox());
+  REQUIRE(fixture.view.frame(0));
+  const auto& list = *fixture.view.displayList();
+  const auto& clip = list.clips.at(list.quads.at(0).clip);
+  CHECK(clip.x == 0);
+  CHECK(clip.width == 200);
+}
+
+TEST_CASE("the pointer meets what a moved box holds inside the clipping box") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"width", 100},
+                              {"height", 40},
+                              {"overflow", "hidden"}})
+                     .create(2, "bureau-box", glidingBox(0))
+                     .create(3, "bureau-box",
+                             {{"width", 10},
+                              {"height", 10},
+                              {"onHoverChange", true}})
+                     .append(2, 3)
+                     .append(1, 2)
+                     .append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  // Laid out at -50 and still drawn at 0, 50 to the right of its place.
+  fixture.commit(Stream().props(2, leftInset(-50)));
+  REQUIRE(fixture.view.frame(1000));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Move, 5, 5));
+  const auto hovers = fixture.handled("onHoverChange");
+  REQUIRE(hovers.size() == 1);
+  CHECK(hovers[0].node == 3);
 }
 
 TEST_CASE("under reduced motion an animation shows one still picture") {
