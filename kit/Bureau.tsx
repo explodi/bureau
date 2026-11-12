@@ -1213,7 +1213,7 @@ function Key(
           : undefined}
         onPress={(press) => {
           if (inProgress) return;
-          onActivate?.({ shift: shift.current });
+          onActivate?.({ shift: shift.current || press.shift === true });
           onPress?.(press);
         }}
         onHoldChange={(down, released) => {

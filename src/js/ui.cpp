@@ -144,6 +144,7 @@ struct Ui::Impl {
       mailbox.uploads.push_back(std::move(upload));
     }
     mailbox.pressable = view->pointerOverPress();
+    mailbox.cursor = view->pointerCursor();
   }
 
   std::optional<std::string> readAsset(const std::string& path) const {
@@ -253,6 +254,10 @@ Ui::Ui(Options options) : impl_(std::make_unique<Impl>()) {
   impl->view->loadTokens(impl->options.tokens);
   impl->view->setViewport(impl->width, impl->height, impl->scale);
   impl->view->setLanguage(languageOf(impl->options.language));
+  if (impl->options.surfacePointer)
+    impl->view->setSurfaceListener(impl->options.surfacePointer);
+  impl->view->setClipboard(impl->options.readClipboard,
+                           impl->options.writeClipboard);
 }
 
 Ui::~Ui() { stop(); }
@@ -325,6 +330,7 @@ Ui::Frame Ui::takeFrame() {
   impl_->mailbox.list.reset();
   frame.uploads.swap(impl_->mailbox.uploads);
   frame.pressable = impl_->mailbox.pressable;
+  frame.cursor = impl_->mailbox.cursor;
   frame.busy = impl_->mailbox.busy;
   frame.textInput = impl_->mailbox.textInput;
   return frame;
@@ -372,6 +378,13 @@ void Ui::typed(std::string text) {
   impl->post([impl, text = std::move(text)](
                  jsi::Runtime&) { impl->view->typed(text); },
              "typed text");
+}
+
+void Ui::compose(std::string text) {
+  Impl* impl = impl_.get();
+  impl->post([impl, text = std::move(text)](
+                 jsi::Runtime&) { impl->view->compose(text); },
+             "composed text");
 }
 
 void Ui::edit(nlohmann::json edit) {

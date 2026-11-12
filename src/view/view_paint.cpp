@@ -1232,6 +1232,10 @@ void View::paintField(int id, const UiRect& rect, PaintState& state) {
       bevel("field", x0, y0, x1, y1);
     }
     std::string value = textProp(field, "value");
+    // An input method's text being composed shows at the caret (K6.2).
+    const bool composing = focused_ == id && !composing_.empty();
+    const size_t composeAt = composing ? std::min(live_[id].caret, value.size()) : 0;
+    if (composing) value.insert(composeAt, composing_);
     const bool placeholder = value.empty();
     if (placeholder) value = textProp(field, "placeholder");
     const std::string styleName = textProp(field, "typeStyle");
@@ -1292,36 +1296,46 @@ void View::paintField(int id, const UiRect& rect, PaintState& state) {
           caretMovedMs_ + (std::floor(sinceMoved / 500.0) + 1) * 500.0;
       repaintAtMs_ = std::min(repaintAtMs_, nextToggleMs);
     }
-    if (caretOn && type != nullptr) {
-      const Live& live = live_[id];
-      const std::string current = textProp(field, "value");
-      const size_t caret = std::min(live.caret, current.size());
-      // The caret is measured from where the aligned line starts, which an
-      // empty field takes at its alignment's edge.
+    // Where a place in the value lies, from where the aligned line starts,
+    // which an empty field takes at its alignment's edge.
+    const std::string current = composing ? value : textProp(field, "value");
+    const auto offsetOf = [&](size_t bytes) {
       const std::string align = textProp(field, "align");
       const float textWidth = std::max(0.0f, rect.width - 16);
-      float caretX = 0;
+      float x = 0;
       if (!current.empty() && !places_.at(id)->paragraph.lines.empty()) {
-        caretX = places_.at(id)->paragraph.lines[0].x;
+        x = places_.at(id)->paragraph.lines[0].x;
       } else if (align == "end") {
-        caretX = textWidth;
+        x = textWidth;
       } else if (align == "center") {
-        caretX = textWidth / 2;
+        x = textWidth / 2;
       }
-      if (caret > 0) {
+      if (bytes > 0) {
         text::Span before;
-        before.text = current.substr(0, caret);
+        before.text = current.substr(0, bytes);
         before.type = type;
         text::ParagraphOptions options;
         options.nowrap = true;
         options.language = language_;
-        caretX += typesetter_.set({before}, options).width;
+        x += typesetter_.set({before}, options).width;
       }
-      const int cx = snap(rect.x + state.dx + 8 + caretX, scale);
+      return snap(rect.x + state.dx + 8 + x, scale);
+    };
+    const style::Color ink = inkOf(id).value_or(style::Color{0, 0, 0, 255});
+    if (composing && type != nullptr) {
+      // The composed text is underlined, as every input method's is.
+      const int ch = snap(type->lineHeight, scale);
+      const int underline = y0 + (y1 - y0 + ch) / 2;
+      white(offsetOf(composeAt), underline - std::max(1, snap(1, scale)),
+            offsetOf(composeAt + composing_.size()), underline, ink);
+    }
+    if (caretOn && type != nullptr) {
+      const size_t caret = composing ? composeAt + composing_.size()
+                                     : std::min(live_[id].caret, current.size());
+      const int cx = offsetOf(caret);
       const int ch = snap(type->lineHeight, scale);
       const int cy = y0 + (y1 - y0 - ch) / 2;
-      white(cx, cy, cx + std::max(1, snap(1, scale)), cy + ch,
-            inkOf(id).value_or(style::Color{0, 0, 0, 255}));
+      white(cx, cy, cx + std::max(1, snap(1, scale)), cy + ch, ink);
     }
   }
   // A bare field's mark is its cell's (the field-cell look's focusWithin).
