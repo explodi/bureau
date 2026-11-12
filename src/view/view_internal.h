@@ -28,6 +28,10 @@ struct View::Place {
   /** What the node is drawn and hit inside: its ancestors' overflow. */
   UiRect clip;
   bool clipped = false;
+  /** Where layout put the border box in its parent's, in UI pixels: what
+   * a glide follows, which no scroll and no move of the parent changes. */
+  float inParentX = 0;
+  float inParentY = 0;
   /** UI pixels on the screen per pixel the node lays out in: below 1 inside
    * a box that scales what it holds down (`scaleBelow`). */
   float scale = 1;
@@ -62,6 +66,15 @@ struct View::Live {
    * how far it had run. */
   bool animationHeld = false;
   std::optional<double> animationPausedMs;
+  /** A gliding box (`glideMs`): its place in its parent at the last paint,
+   * and the offset it set off from when that place last changed, which
+   * eases out to nothing. */
+  bool glidePlaced = false;
+  float glideRestX = 0;
+  float glideRestY = 0;
+  float glideFromX = 0;
+  float glideFromY = 0;
+  double glideStartMs = 0;
   std::string count;
   double countStartMs = -1;
   /** A field's caret, in bytes of its value. */

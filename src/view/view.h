@@ -258,6 +258,10 @@ class View {
   void paintContext(int id, PaintState state);
   void paintBox(int id, const UiRect& rect, PaintState& state,
                 const std::optional<AnimationSample>& animated);
+  /** How far from its place a gliding box (`glideMs`) is drawn this frame,
+   * in UI pixels. */
+  std::pair<float, float> glideShift(Live& live, const Place& place,
+                                     double durationMs);
   void paintText(int id, const UiRect& rect, PaintState& state);
   void paintImage(int id, const UiRect& rect, PaintState& state);
   void paintField(int id, const UiRect& rect, PaintState& state);

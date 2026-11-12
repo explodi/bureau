@@ -2047,6 +2047,137 @@ TEST_CASE("a click lands on a box where its animation draws it") {
   CHECK(fixture.handled("onPress").size() == 1);
 }
 
+namespace {
+
+/** A 10 by 10 black box at `left`, that glides for 100 ms. */
+Json glidingBox(int left) {
+  return {{"position", "absolute"},
+          {"inset", {{"left", left}, {"top", 0}}},
+          {"width", 10},
+          {"height", 10},
+          {"fill", "db32-black"},
+          {"onHoverChange", true},
+          {"glideMs", 100}};
+}
+
+Json leftInset(int left) { return {{"inset", {{"left", left}, {"top", 0}}}}; }
+
+}  // namespace
+
+TEST_CASE("a gliding box appears where it is laid out, and owes no frames") {
+  Fixture fixture;
+  fixture.commit(
+      Stream().create(1, "bureau-box", glidingBox(100)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 100);
+  CHECK_FALSE(fixture.view.animating());
+}
+
+TEST_CASE("a box that layout moves glides there from where it was drawn") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", glidingBox(0)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.commit(Stream().props(1, leftInset(100)));
+  REQUIRE(fixture.view.frame(1000));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 0);
+  REQUIRE(fixture.view.frame(1050));
+  // Half its time gone, seven eighths of its way: it slows as it arrives.
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 88);
+  REQUIRE(fixture.view.frame(1100));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 100);
+}
+
+TEST_CASE("a gliding box owes frames until it arrives") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", glidingBox(0)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.commit(Stream().props(1, leftInset(100)));
+  REQUIRE(fixture.view.frame(1000));
+  CHECK(fixture.view.animating());
+  REQUIRE(fixture.view.frame(1100));
+  CHECK_FALSE(fixture.view.animating());
+  CHECK_FALSE(fixture.view.frame(1116));
+}
+
+TEST_CASE("a move during a glide sets off from where the box is drawn") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", glidingBox(0)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.commit(Stream().props(1, leftInset(100)));
+  REQUIRE(fixture.view.frame(1000));
+  REQUIRE(fixture.view.frame(1050));
+  fixture.commit(Stream().props(1, leftInset(0)));
+  REQUIRE(fixture.view.frame(1050));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 88);
+  REQUIRE(fixture.view.frame(1150));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 0);
+}
+
+TEST_CASE("a gliding box is carried at once by a move of its parent") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"position", "absolute"},
+                              {"inset", {{"left", 0}, {"top", 0}}},
+                              {"width", 50},
+                              {"height", 50}})
+                     .create(2, "bureau-box",
+                             {{"width", 10},
+                              {"height", 10},
+                              {"fill", "db32-black"},
+                              {"glideMs", 100}})
+                     .append(1, 2)
+                     .append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.commit(Stream().props(1, leftInset(100)));
+  REQUIRE(fixture.view.frame(1000));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 100);
+}
+
+TEST_CASE("a gliding box is carried at once by its scroll") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-scroll",
+                             {{"width", 100},
+                              {"height", 100},
+                              {"direction", "column"},
+                              {"scrollbar", "hidden"}})
+                     .create(2, "bureau-box",
+                             {{"height", 300},
+                              {"shrink", 0},
+                              {"fill", "db32-black"},
+                              {"glideMs", 100}})
+                     .append(1, 2)
+                     .append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.view.scrollBy(1, 0, 60);
+  REQUIRE(fixture.view.frame(1000));
+  CHECK(fixture.view.displayList()->quads.at(0).y0 == -60);
+}
+
+TEST_CASE("under reduced motion a moved box stands in its new place at once") {
+  Fixture fixture;
+  fixture.view.setReducedMotion(true);
+  fixture.commit(Stream().create(1, "bureau-box", glidingBox(0)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.commit(Stream().props(1, leftInset(100)));
+  REQUIRE(fixture.view.frame(1000));
+  CHECK(fixture.view.displayList()->quads.at(0).x0 == 100);
+  CHECK_FALSE(fixture.view.animating());
+}
+
+TEST_CASE("the pointer hits a gliding box where it is drawn") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-box", glidingBox(0)).append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  fixture.commit(Stream().props(1, leftInset(200)));
+  REQUIRE(fixture.view.frame(1000));
+  fixture.view.pointer(pointer(bureau::PointerEvent::Kind::Move, 5, 5));
+  const auto hovers = fixture.handled("onHoverChange");
+  REQUIRE(hovers.size() == 1);
+  CHECK(hovers[0].args == Json::array({true}));
+}
+
 TEST_CASE("under reduced motion an animation shows one still picture") {
   bureau::style::Tokens tokens;
   REQUIRE(tokens.load(tokenDocument()));
