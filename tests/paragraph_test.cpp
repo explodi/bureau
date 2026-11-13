@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <vector>
 
 #include "goldens.h"
 
@@ -142,6 +143,27 @@ TEST_CASE("fallback glyphs use their own face adjustment") {
   CHECK(setting.fonts.sourceOf(english.lines[0].glyphs[1].font) ==
         "/fonts/SofiaSans-SemiBold.ttf");
   CHECK(english.lines[0].glyphs[1].font->size() == doctest::Approx(16.92));
+}
+
+TEST_CASE("text its own face covers reads no other face") {
+  std::vector<std::string> read;
+  bureau::style::Tokens tokens;
+  std::ifstream file(BUREAU_TOKENS_JSON);
+  REQUIRE(tokens.load(std::string{std::istreambuf_iterator<char>{file}, {}}));
+  bureau::text::FontLibrary fonts([&](const std::string& path) {
+    read.push_back(path);
+    return readPublic(path);
+  });
+  bureau::text::Typesetter typesetter(fonts, tokens);
+  bureau::text::Span span;
+  span.text = "Pressed 3 times";
+  span.type = tokens.type("text", "en");
+  bureau::text::ParagraphOptions options;
+  options.strut = span.type;
+
+  typesetter.set({span}, options);
+
+  CHECK(read == std::vector<std::string>{"/fonts/Jersey25-Regular.ttf"});
 }
 
 TEST_CASE("a centered line offsets its glyphs once, by the line") {

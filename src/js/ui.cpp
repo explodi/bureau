@@ -2,12 +2,15 @@
 
 #include <jsi/jsi.h>
 
+#include <condition_variable>
 #include <cstdio>
 #include <deque>
+#include <functional>
 #include <mutex>
 #include <random>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -97,6 +100,51 @@ struct Ui::Impl {
 
   /** The UI's thread's: animation time, when something holds it still. */
   std::optional<double> frozenClock;
+
+  /** The client's own files (`assetText`, `assetBytes`), read on a thread of
+   * their own and answered on the UI's: a disk that takes seconds over one
+   * file holds that thread, not the interface. */
+  std::mutex readsMutex;
+  std::condition_variable readsQueued;
+  std::deque<std::function<void()>> reads;
+  bool readsStopped = false;
+  std::thread reader;
+  /** The callbacks those reads answer, for the runtime that asked: the UI's
+   * thread's, and gone with that runtime. */
+  std::shared_ptr<bridge::Pending> pendingReads;
+
+  void readLater(std::function<void()> read) {
+    std::lock_guard lock(readsMutex);
+    if (readsStopped) return;
+    reads.push_back(std::move(read));
+    readsQueued.notify_one();
+  }
+
+  void readInTurn() {
+    for (;;) {
+      std::function<void()> read;
+      {
+        std::unique_lock lock(readsMutex);
+        readsQueued.wait(lock,
+                         [this] { return readsStopped || !reads.empty(); });
+        if (readsStopped) return;
+        read = std::move(reads.front());
+        reads.pop_front();
+      }
+      read();
+    }
+  }
+
+  /** Waits for the file being read, if any; the rest are never answered. */
+  void stopReading() {
+    {
+      std::lock_guard lock(readsMutex);
+      readsStopped = true;
+      reads.clear();
+      readsQueued.notify_one();
+    }
+    if (reader.joinable()) reader.join();
+  }
 
   /** What the UI's thread is in the middle of, outermost first: it writes,
    * any thread reads. */
@@ -215,22 +263,52 @@ struct Ui::Impl {
              array.setValueAtIndex(runtime, 2, jsi::Value(scale));
              return jsi::Value(runtime, array);
            });
-    define(js, native, "assetText",
-           [this](jsi::Runtime& runtime, const jsi::Value&,
-                  const jsi::Value* args, size_t count) {
-             const auto bytes = readAsset(stringArg(runtime, args, count, 0));
-             return bytes ? jsString(runtime, *bytes) : jsi::Value::null();
-           });
-    define(js, native, "assetBytes",
-           [this](jsi::Runtime& runtime, const jsi::Value&,
-                  const jsi::Value* args, size_t count) {
-             auto bytes = readAsset(stringArg(runtime, args, count, 0));
-             if (!bytes) return jsi::Value::null();
-             return jsi::Value(
-                 runtime,
-                 jsi::ArrayBuffer(runtime,
-                                  std::make_shared<Bytes>(std::move(*bytes))));
-           });
+    pendingReads = std::make_shared<bridge::Pending>();
+    defineRead(js, native, "assetText",
+               [](jsi::Runtime& runtime, std::string bytes) {
+                 return jsString(runtime, bytes);
+               });
+    defineRead(
+        js, native, "assetBytes", [](jsi::Runtime& runtime, std::string bytes) {
+          return jsi::Value(
+              runtime, jsi::ArrayBuffer(
+                           runtime, std::make_shared<Bytes>(std::move(bytes))));
+        });
+  }
+
+  /** `name(path, done)`: reads the file off the UI's thread, then calls
+   * `done` on it with the file as `valueOf` makes it, or null when there is
+   * none. */
+  void defineRead(jsi::Runtime& js, jsi::Object& native, const char* name,
+                  jsi::Value (*valueOf)(jsi::Runtime&, std::string)) {
+    define(
+        js, native, name,
+        [this, valueOf](jsi::Runtime& runtime, const jsi::Value&,
+                        const jsi::Value* args, size_t count) {
+          const bool answerable = count >= 2 && args[1].isObject() &&
+                                  args[1].asObject(runtime).isFunction(runtime);
+          if (!answerable) return jsi::Value::undefined();
+          const int id =
+              pendingReads->keep(args[1].asObject(runtime).asFunction(runtime));
+          std::weak_ptr<bridge::Pending> asker = pendingReads;
+          readLater([this, path = stringArg(runtime, args, count, 0), id, asker,
+                     valueOf] {
+            auto bytes =
+                options.readAsset ? options.readAsset(path) : std::nullopt;
+            post(
+                [asker, id, valueOf,
+                 bytes = std::move(bytes)](jsi::Runtime& js) mutable {
+                  const auto state = asker.lock();
+                  if (!state) return;
+                  auto done = state->take(id);
+                  if (!done) return;
+                  done->call(js, bytes ? valueOf(js, std::move(*bytes))
+                                       : jsi::Value::null());
+                },
+                "asset");
+          });
+          return jsi::Value::undefined();
+        });
   }
 };
 
@@ -258,6 +336,7 @@ Ui::Ui(Options options) : impl_(std::make_unique<Impl>()) {
     impl->view->setSurfaceListener(impl->options.surfacePointer);
   impl->view->setClipboard(impl->options.readClipboard,
                            impl->options.writeClipboard);
+  impl->reader = std::thread([impl] { impl->readInTurn(); });
 }
 
 Ui::~Ui() { stop(); }
@@ -279,6 +358,7 @@ void Ui::start() {
   options.install = [impl](jsi::Runtime& js) { impl->installNative(js); };
   options.uninstall = [impl](jsi::Runtime& js) {
     impl->view->setDispatch(nullptr);
+    impl->pendingReads.reset();
     if (impl->options.uninstall) impl->options.uninstall(js);
   };
   options.afterTurn = [impl](jsi::Runtime& js, double nowMs) {
@@ -303,6 +383,10 @@ void Ui::stop() {
     if (impl->stopped) return;
     impl->stopped = true;
     impl->held.clear();
+  }
+  impl->stopReading();
+  {
+    std::lock_guard lock(impl->mutex);
     if (!impl->host) return;
   }
   // Queued tasks read host(), so they run while it still holds the engine.

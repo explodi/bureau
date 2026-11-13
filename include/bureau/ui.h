@@ -56,7 +56,10 @@ class Ui {
     /** The looks, as JSON (tools/tokens.ts). */
     std::string tokens;
     /** A file the UI asks for by its path under the game's assets (`/fonts/…`,
-     * pictures); nothing when there is none. On the UI's thread. */
+     * pictures); nothing when there is none. On the UI's thread for the
+     * view's faces and pictures, and on a thread of the UI's own for what
+     * TypeScript reads (`assetText`, `assetBytes`), so it must be safe to
+     * call from both. */
     std::function<std::optional<std::string>(const std::string& path)> readAsset;
     /** The window, in points, and its device pixels per point. */
     float width = 1280;
