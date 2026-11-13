@@ -11,7 +11,9 @@ import type { KitPlatform, KitStorage } from "./platform.ts";
 
 interface Native {
   log(level: string, text: string): void;
-  assetText(path: string): string | null;
+  /** Reads off the interface's thread and calls `done` with the file, or
+   * null when there is none. */
+  assetText(path: string, done: (text: string | null) => void): void;
   setClipboard?(text: string): void;
   storageGet?(key: string): string | null;
   storageSet?(key: string, value: string): void;
@@ -62,7 +64,9 @@ export const platform: KitPlatform = {
       return Promise.resolve();
     },
   },
-  assets: { text: (path) => Promise.resolve(native.assetText(path)) },
+  assets: {
+    text: (path) => new Promise((resolve) => native.assetText(path, resolve)),
+  },
   shell: { identity: undefined, isSteamDeck: false },
   log: {
     error: (message, ...details) =>

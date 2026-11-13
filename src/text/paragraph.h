@@ -143,8 +143,28 @@ class Typesetter {
  private:
   Paragraph fit(const std::vector<Span>& spans,
                 const ParagraphOptions& options);
+  /** A run's faces in the order its characters try them: the style's own,
+   * then the language's fallbacks, each opened only when a character the
+   * faces before it lack needs it. Opening every face up front read the
+   * shipped CJK faces, ten megabytes each, before the first Latin label. */
   struct Chain {
+    explicit Chain(FontLibrary& library) : library(library) {}
+    FontLibrary& library;
     std::vector<Font*> fonts;
+    /** Every fallback's file and size, in order; those before `opened` have
+     * been opened. */
+    std::vector<std::pair<std::string, float>> fallbacks;
+    size_t opened = 0;
+
+    /** The first face, which spaces and characters no face has take. */
+    Font* first();
+    /** The first face with a glyph for `code`, else `first()`. */
+    Font* fontFor(char32_t code);
+
+   private:
+    /** The next fallback that opens and is not in `fonts` yet, added to it;
+     * null when none is left. */
+    Font* openNext();
   };
   Chain chain(const style::TypeStyle& type, float scale,
               const std::string& language);

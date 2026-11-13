@@ -7,6 +7,7 @@
 #include <chrono>
 #include <fstream>
 #include <functional>
+#include <future>
 #include <iterator>
 #include <map>
 #include <mutex>
@@ -35,6 +36,9 @@ std::optional<std::string> readFile(const std::string& path) {
   return std::string(std::istreambuf_iterator<char>{file}, {});
 }
 
+/** A file whose read waits for the test (Game::slowDisk). */
+const std::string kSlowFile = "/keyboards/readings.json";
+
 /** A little game: the hello bundle, with its one function of its own. */
 struct Game {
   std::atomic<int> pressed{0};
@@ -43,6 +47,9 @@ struct Game {
   std::string doingInPress;
   std::mutex readsMutex;
   std::map<std::string, std::string> doingInRead;
+  /** kSlowFile's read lasts until this is set: a disk taking its time. */
+  std::promise<void> slowDisk;
+  std::shared_future<void> slowDiskDone = slowDisk.get_future().share();
   std::shared_ptr<const bureau::DisplayList> list;
   std::unique_ptr<bureau::Ui> ui;
 
@@ -59,6 +66,8 @@ struct Game {
         std::lock_guard lock(readsMutex);
         doingInRead[path] = ui->doing();
       }
+      // Bounded, so a read on the UI's thread fails the test, not hangs it.
+      if (path == kSlowFile) slowDiskDone.wait_for(std::chrono::seconds(5));
       return readFile(std::string(BUREAU_ASSETS_DIR) + path);
     };
     options.width = 320;
@@ -158,17 +167,71 @@ TEST_CASE("a handler at work is named with the node it is on") {
   game.ui->stop();
 }
 
-TEST_CASE("a file being read is named") {
+TEST_CASE("a face being read is named") {
   Game game;
   game.until([&] { return game.drew(); });
-  game.ui->invoke([](jsi::Runtime& js) {
+  std::lock_guard lock(game.readsMutex);
+  CHECK(game.doingInRead["/fonts/Jersey25-Regular.ttf"] ==
+        "read /fonts/Jersey25-Regular.ttf");
+  game.ui->stop();
+}
+
+TEST_CASE("the interface answers while a file TypeScript asked for is read") {
+  Game game;
+  game.until([&] { return game.drew(); });
+  std::mutex answerMutex;
+  std::optional<std::string> answer;
+  game.ui->invoke([&](jsi::Runtime& js) {
+    const auto done = jsi::Function::createFromHostFunction(
+        js, jsi::PropNameID::forAscii(js, "done"), 1,
+        [&](jsi::Runtime& runtime, const jsi::Value&, const jsi::Value* args,
+            size_t) {
+          std::lock_guard lock(answerMutex);
+          answer = args[0].asString(runtime).utf8(runtime);
+          return jsi::Value::undefined();
+        });
     js.global()
         .getPropertyAsObject(js, "__native")
         .getPropertyAsFunction(js, "assetText")
-        .call(js, "/no-such-file.txt");
+        .call(js, kSlowFile, done);
   });
-  std::lock_guard lock(game.readsMutex);
-  CHECK(game.doingInRead["/no-such-file.txt"] == "read /no-such-file.txt");
+
+  bool answeredWhileReading = true;
+  game.ui->invoke([&](jsi::Runtime&) {
+    std::lock_guard lock(answerMutex);
+    answeredWhileReading = answer.has_value();
+  });
+  game.slowDisk.set_value();
+  game.until([&] {
+    std::lock_guard lock(answerMutex);
+    return answer.has_value();
+  });
+
+  CHECK_FALSE(answeredWhileReading);
+  CHECK(answer->starts_with("{"));
+  game.ui->stop();
+}
+
+TEST_CASE("a file TypeScript asks for that is not there answers null") {
+  Game game;
+  game.until([&] { return game.drew(); });
+  std::atomic<bool> answeredNull{false};
+  game.ui->invoke([&](jsi::Runtime& js) {
+    const auto done = jsi::Function::createFromHostFunction(
+        js, jsi::PropNameID::forAscii(js, "done"), 1,
+        [&](jsi::Runtime&, const jsi::Value&, const jsi::Value* args, size_t) {
+          answeredNull = args[0].isNull();
+          return jsi::Value::undefined();
+        });
+    js.global()
+        .getPropertyAsObject(js, "__native")
+        .getPropertyAsFunction(js, "assetBytes")
+        .call(js, "/no-such-file.bin", done);
+  });
+
+  game.until([&] { return answeredNull.load(); });
+
+  CHECK(answeredNull);
   game.ui->stop();
 }
 

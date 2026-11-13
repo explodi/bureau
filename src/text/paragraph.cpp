@@ -205,18 +205,43 @@ Font* Typesetter::primary(const style::TypeStyle& type, float scale) {
 
 Typesetter::Chain Typesetter::chain(const style::TypeStyle& type, float scale,
                                     const std::string& language) {
-  Chain chain;
+  Chain chain(fonts_);
   if (Font* first = primary(type, scale)) chain.fonts.push_back(first);
   for (const auto& family : tokens_.fallbackFamilies(language)) {
     const auto* face = tokens_.face(family, type.weight);
     if (face == nullptr || face->source.empty()) continue;
-    Font* font =
-        fonts_.font(face->source, type.size * scale * face->sizeAdjust);
-    const bool known = std::find(chain.fonts.begin(), chain.fonts.end(),
-                                 font) != chain.fonts.end();
-    if (font != nullptr && !known) chain.fonts.push_back(font);
+    chain.fallbacks.emplace_back(face->source,
+                                 type.size * scale * face->sizeAdjust);
   }
   return chain;
+}
+
+Font* Typesetter::Chain::openNext() {
+  while (opened < fallbacks.size()) {
+    const auto& [source, size] = fallbacks[opened++];
+    Font* font = library.font(source, size);
+    const bool known =
+        std::find(fonts.begin(), fonts.end(), font) != fonts.end();
+    if (font == nullptr || known) continue;
+    fonts.push_back(font);
+    return font;
+  }
+  return nullptr;
+}
+
+Font* Typesetter::Chain::first() {
+  if (fonts.empty()) openNext();
+  return fonts.empty() ? nullptr : fonts.front();
+}
+
+Font* Typesetter::Chain::fontFor(char32_t code) {
+  for (Font* font : fonts) {
+    if (font->glyphFor(code) != 0) return font;
+  }
+  while (Font* font = openNext()) {
+    if (font->glyphFor(code) != 0) return font;
+  }
+  return first();
 }
 
 Paragraph Typesetter::fit(const std::vector<Span>& spans,
@@ -333,15 +358,11 @@ Paragraph Typesetter::set(const std::vector<Span>& spans,
       clusters.push_back(atom);
       continue;
     }
-    const Chain fonts = chain(*span.type, span.scale, options.language);
-    if (fonts.fonts.empty()) continue;
+    Chain fonts = chain(*span.type, span.scale, options.language);
+    if (fonts.first() == nullptr) continue;
     const auto fontAt = [&](char32_t code) {
       const bool blank = code == ' ' || code == '\n';
-      if (blank) return fonts.fonts.front();
-      for (Font* font : fonts.fonts) {
-        if (font->glyphFor(code) != 0) return font;
-      }
-      return fonts.fonts.front();
+      return blank ? fonts.first() : fonts.fontFor(code);
     };
     const float letterSpacing = span.type->letterSpacing * span.scale;
     const float wordSpacing = span.type->wordSpacing * span.scale;
