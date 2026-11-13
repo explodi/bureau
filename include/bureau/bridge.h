@@ -29,6 +29,10 @@ jsi::Value jsString(jsi::Runtime& runtime, const std::string& value);
 /** A value from JavaScript as JSON, through its own JSON.stringify. */
 nlohmann::json jsonOf(jsi::Runtime& runtime, const jsi::Value& value);
 
+/** JSON's text for JavaScript. A byte that is not UTF-8 reads as U+FFFD, so
+ * one bad string costs a letter rather than the turn that carried it. */
+std::string jsonText(const nlohmann::json& value);
+
 void define(jsi::Runtime& runtime, jsi::Object& object, const char* name,
             jsi::HostFunctionType body);
 

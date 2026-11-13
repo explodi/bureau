@@ -50,6 +50,10 @@ Json jsonOf(jsi::Runtime& runtime, const jsi::Value& value) {
   return Json::parse(encoded.asString(runtime).utf8(runtime), nullptr, false);
 }
 
+std::string jsonText(const Json& value) {
+  return value.dump(-1, ' ', false, Json::error_handler_t::replace);
+}
+
 void define(jsi::Runtime& runtime, jsi::Object& object, const char* name,
             jsi::HostFunctionType body) {
   object.setProperty(runtime, name,
@@ -96,7 +100,7 @@ void installViewBridge(jsi::Runtime& runtime, jsi::Object& native, View& view) {
             dispatch.asObject(runtime).asFunction(runtime).call(
                 runtime, jsi::Value(node),
                 jsi::String::createFromUtf8(runtime, std::string(handler)),
-                jsi::String::createFromUtf8(runtime, args.dump()));
+                jsi::String::createFromUtf8(runtime, bridge::jsonText(args)));
         return bridge::jsonOf(runtime, answer);
       });
 
