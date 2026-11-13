@@ -348,6 +348,94 @@ TEST_CASE("a profile stopped into a missing folder answers why") {
   CHECK_FALSE(host.stop_profile("/no-such-folder/profile.json").empty());
 }
 
+namespace {
+
+/** What `Uint8Array.fromBase64(text, options)` answers in the host: its
+ * bytes, or the name of the error it throws. */
+struct FromBase64 {
+  std::vector<int> bytes;
+  std::string thrown;
+};
+
+FromBase64 fromBase64(const std::string& text,
+                      const char* lastChunkHandling = nullptr) {
+  bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
+  FromBase64 answer;
+  host.invoke([&](facebook::jsi::Runtime& js) {
+    auto read = js.global()
+                    .getPropertyAsObject(js, "Uint8Array")
+                    .getPropertyAsFunction(js, "fromBase64");
+    facebook::jsi::Object options(js);
+    if (lastChunkHandling != nullptr) {
+      options.setProperty(
+          js, "lastChunkHandling",
+          facebook::jsi::String::createFromAscii(js, lastChunkHandling));
+    }
+    try {
+      auto array =
+          read.call(js, facebook::jsi::String::createFromUtf8(js, text),
+                    std::move(options))
+              .getObject(js);
+      const int length =
+          static_cast<int>(array.getProperty(js, "length").asNumber());
+      for (int index = 0; index < length; ++index) {
+        answer.bytes.push_back(static_cast<int>(
+            array.getProperty(js, std::to_string(index).c_str()).asNumber()));
+      }
+    } catch (const facebook::jsi::JSError& error) {
+      answer.thrown = error.value()
+                          .getObject(js)
+                          .getProperty(js, "name")
+                          .getString(js)
+                          .utf8(js);
+    }
+  });
+  return answer;
+}
+
+}  // namespace
+
+TEST_CASE("Uint8Array.fromBase64 reads padded base64 into its bytes") {
+  CHECK(fromBase64("AQID/f4=").bytes == std::vector<int>{1, 2, 3, 253, 254});
+}
+
+TEST_CASE("Uint8Array.fromBase64 reads a last byte padded twice") {
+  CHECK(fromBase64("AQID/Q==").bytes == std::vector<int>{1, 2, 3, 253});
+}
+
+TEST_CASE("Uint8Array.fromBase64 skips ASCII whitespace") {
+  CHECK(fromBase64(" AQ\nID\t").bytes == std::vector<int>{1, 2, 3});
+}
+
+TEST_CASE("Uint8Array.fromBase64 reads a loose last chunk without padding") {
+  CHECK(fromBase64("AQID/Q").bytes == std::vector<int>{1, 2, 3, 253});
+}
+
+TEST_CASE("Uint8Array.fromBase64 refuses a character outside base64") {
+  CHECK(fromBase64("AQ-D").thrown == "SyntaxError");
+}
+
+TEST_CASE("Uint8Array.fromBase64 refuses half a padding") {
+  CHECK(fromBase64("AQID/Q=").thrown == "SyntaxError");
+}
+
+TEST_CASE("a strict Uint8Array.fromBase64 refuses bits after the last byte") {
+  CHECK(fromBase64("AQID/R==", "strict").thrown == "SyntaxError");
+}
+
+TEST_CASE("a strict Uint8Array.fromBase64 refuses a chunk without padding") {
+  CHECK(fromBase64("AQID/Q", "strict").thrown == "SyntaxError");
+}
+
+TEST_CASE("Uint8Array.fromBase64 stops before a partial chunk when asked") {
+  CHECK(fromBase64("AQID/Q", "stop-before-partial").bytes ==
+        std::vector<int>{1, 2, 3});
+}
+
+TEST_CASE("Uint8Array.fromBase64 refuses an unknown last chunk handling") {
+  CHECK(fromBase64("AQID", "lenient").thrown == "TypeError");
+}
+
 #if BUREAU_ENABLE_DEBUGGER
 TEST_CASE("a busy VM coalesces missed display refreshes") {
   bureau::js::Host::Options options;

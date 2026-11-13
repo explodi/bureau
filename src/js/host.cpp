@@ -9,6 +9,8 @@
 #include <hermes/cdp/CDPDebugAPI.h>
 #endif
 
+#include "net/base64.h"
+
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
@@ -19,6 +21,7 @@
 #include <deque>
 #include <fstream>
 #include <future>
+#include <initializer_list>
 #include <map>
 #include <mutex>
 #include <system_error>
@@ -71,6 +74,76 @@ std::string profilerFailure(Call&& call) {
   } catch (...) {
     return "Hermes's sampling profiler failed";
   }
+}
+
+[[noreturn]] void throwError(jsi::Runtime& js, const char* kind,
+                             const std::string& message) {
+  jsi::Value error = js.global().getPropertyAsFunction(js, kind)
+                         .callAsConstructor(js, jsi::String::createFromUtf8(
+                                                    js, message));
+  throw jsi::JSError(js, std::move(error));
+}
+
+/** One of an options object's string choices, or `fallback` when it names
+ * none; anything else is a TypeError, as the standard says. */
+std::string option(jsi::Runtime& js, const jsi::Object& options,
+                   const char* name, const char* fallback,
+                   std::initializer_list<const char*> allowed) {
+  const jsi::Value value = options.getProperty(js, name);
+  if (value.isUndefined()) return fallback;
+  const std::string chosen =
+      value.isString() ? value.getString(js).utf8(js) : std::string();
+  for (const char* known : allowed) {
+    if (chosen == known) return chosen;
+  }
+  throwError(js, "TypeError",
+             std::string("Uint8Array.fromBase64: unknown ") + name);
+}
+
+/** ECMAScript 2026's `Uint8Array.fromBase64`, while Hermes has none: a
+ * loop in Hermes's interpreter takes a quarter of a second over a megabyte
+ * of base64, all of it in one turn. */
+void install_from_base64(jsi::Runtime& js) {
+  jsi::Object uint8 = js.global().getPropertyAsObject(js, "Uint8Array");
+  if (!uint8.getProperty(js, "fromBase64").isUndefined()) return;
+  const auto fromBase64 = [](jsi::Runtime& js, const jsi::Value&,
+                             const jsi::Value* args, size_t count) {
+    if (count == 0 || !args[0].isString())
+      throwError(js, "TypeError", "Uint8Array.fromBase64 reads a string");
+    const bool hasOptions = count > 1 && !args[1].isUndefined();
+    if (hasOptions && !args[1].isObject())
+      throwError(js, "TypeError", "Uint8Array.fromBase64's options");
+    const jsi::Object options =
+        hasOptions ? args[1].getObject(js) : jsi::Object(js);
+    const bool url =
+        option(js, options, "alphabet", "base64", {"base64", "base64url"}) ==
+        "base64url";
+    const std::string last =
+        option(js, options, "lastChunkHandling", "loose",
+               {"loose", "strict", "stop-before-partial"});
+    const net::LastChunk handling =
+        last == "strict"                ? net::LastChunk::Strict
+        : last == "stop-before-partial" ? net::LastChunk::StopBeforePartial
+                                        : net::LastChunk::Loose;
+    const net::Decoded decoded =
+        net::fromBase64(args[0].getString(js).utf8(js), url, handling);
+    if (!decoded.error.empty()) throwError(js, "SyntaxError", decoded.error);
+    const double length = static_cast<double>(decoded.bytes.size());
+    jsi::Object array = js.global()
+                            .getPropertyAsFunction(js, "Uint8Array")
+                            .callAsConstructor(js, length)
+                            .getObject(js);
+    jsi::ArrayBuffer buffer =
+        array.getProperty(js, "buffer").getObject(js).getArrayBuffer(js);
+    if (!decoded.bytes.empty()) {
+      std::memcpy(buffer.data(js), decoded.bytes.data(), decoded.bytes.size());
+    }
+    return jsi::Value(std::move(array));
+  };
+  uint8.setProperty(js, "fromBase64",
+                    jsi::Function::createFromHostFunction(
+                        js, jsi::PropNameID::forAscii(js, "fromBase64"), 1,
+                        fromBase64));
 }
 
 // A microtask that throws ends the drain with a JSError: callers guard it,
@@ -379,6 +452,7 @@ struct Host::Impl {
               }));
     }
     js.global().setProperty(js, "console", std::move(console));
+    install_from_base64(js);
     if (options.install) options.install(*runtime);
   }
 
