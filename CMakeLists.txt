@@ -59,7 +59,7 @@ include(third_party/hermes.cmake)
 set(BUREAU_HERMES_FRAMEWORKS "${bureau_hermes_framework_dir}" CACHE INTERNAL "")
 if(TARGET bureau_hermes)
   add_library(bureau_js STATIC
-    src/js/host.cpp src/js/inspect.cpp src/js/ui.cpp src/js/view_bridge.cpp
+    src/js/awake_clock.cpp src/js/host.cpp src/js/inspect.cpp src/js/ui.cpp src/js/view_bridge.cpp
     src/js/net/base64.cpp src/js/net/handshake.cpp src/js/net/http_request.cpp
     src/js/net/websocket_frame.cpp)
   if(WIN32)

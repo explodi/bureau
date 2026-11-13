@@ -3,6 +3,7 @@
 
 #include <jsi/jsi.h>
 
+#include "../src/js/awake_clock.h"
 #include "../src/js/host.h"
 #include "../src/tree/tree.h"
 
@@ -137,6 +138,19 @@ TEST_CASE("a real clock stamps frames with performance.now()'s time") {
   REQUIRE(frame != commits.end());
   CHECK(std::stod(frame->substr(6)) < 10'000);
   CHECK(host.take_error().empty());
+}
+
+TEST_CASE("the awake clock keeps time with the steady clock while awake") {
+  const auto steadyStarted = std::chrono::steady_clock::now();
+  const std::int64_t awakeStarted = bureau::js::awakeNanoseconds();
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  const double awakeMs =
+      static_cast<double>(bureau::js::awakeNanoseconds() - awakeStarted) / 1e6;
+  const double steadyMs = std::chrono::duration<double, std::milli>(
+                              std::chrono::steady_clock::now() - steadyStarted)
+                              .count();
+  CHECK(awakeMs >= 50);
+  CHECK(awakeMs == doctest::Approx(steadyMs).epsilon(0.1));
 }
 
 TEST_CASE("Unicode case mapping normalization and the committed collation "
