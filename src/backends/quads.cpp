@@ -28,14 +28,37 @@ Scissor scissorOf(const Clip& clip, const DisplayList& list, int width,
   return {left, top, right - left, bottom - top};
 }
 
+/** Whether any of `corners` can reach a pixel of `clip`: a scissor keeps
+ * nothing of a quad off it, so a long list's rows out of sight cost nothing. */
+bool reaches(const Vertex (&corners)[4], const Clip& clip) {
+  if (clip.width <= 0 || clip.height <= 0) return false;
+  float left = corners[0].x, right = corners[0].x;
+  float top = corners[0].y, bottom = corners[0].y;
+  for (const Vertex& corner : corners) {
+    left = std::min(left, corner.x);
+    right = std::max(right, corner.x);
+    top = std::min(top, corner.y);
+    bottom = std::max(bottom, corner.y);
+  }
+  const bool across = right > clip.x && left < clip.x + clip.width;
+  const bool down = bottom > clip.y && top < clip.y + clip.height;
+  return across && down;
+}
+
 }  // namespace
+
+std::uint64_t vertexBufferBytes(std::uint64_t needed, std::uint64_t held) {
+  const std::uint64_t most = kMaxVertices * sizeof(Vertex);
+  return std::min(std::max(needed, held) * 2, most);
+}
 
 Batches batchesOf(const DisplayList& list, int width, int height) {
   Batches batches;
-  batches.vertices.reserve(list.quads.size() * 6);
+  batches.vertices.reserve(std::min(list.quads.size() * 6, kMaxVertices));
   int page = -1;
   int clip = -1;
   for (const Quad& quad : list.quads) {
+    if (batches.vertices.size() + 6 > kMaxVertices) break;
     const float mode = static_cast<float>(quad.mode);
     const float stipple = static_cast<float>(quad.stipple);
     const float smooth = quad.smooth ? 1.0f : 0.0f;
@@ -58,10 +81,11 @@ Batches batchesOf(const DisplayList& list, int width, int height) {
         corner.y = quad.originY + x * sine + y * cosine;
       }
     }
+    const Clip& rect =
+        list.clips[std::min<size_t>(quad.clip, list.clips.size() - 1)];
+    if (!reaches(corners, rect)) continue;
     const bool startsRun = quad.page != page || quad.clip != clip;
     if (startsRun) {
-      const Clip& rect =
-          list.clips[std::min<size_t>(quad.clip, list.clips.size() - 1)];
       batches.runs.push_back(
           {static_cast<std::uint32_t>(batches.vertices.size()), 0, quad.page,
            scissorOf(rect, list, width, height)});

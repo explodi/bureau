@@ -140,6 +140,7 @@ void MetalBackend::draw(const DisplayList& list, void* encoder, int width,
   if (impl_->pipeline == nil || list.quads.empty()) return;
   id<MTLRenderCommandEncoder> pass = (__bridge id<MTLRenderCommandEncoder>)encoder;
   const auto batches = backends::batchesOf(list, width, height);
+  if (batches.vertices.empty()) return;
   id<MTLBuffer> vertices = [impl_->device
       newBufferWithBytes:batches.vertices.data()
                   length:batches.vertices.size() * sizeof(backends::Vertex)

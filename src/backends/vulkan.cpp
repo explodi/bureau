@@ -459,11 +459,14 @@ void VulkanBackend::draw(VkCommandBuffer commands, std::uint32_t slot,
   Impl& vk = *impl_;
   if (vk.pipeline == VK_NULL_HANDLE || list.quads.empty()) return;
   const auto batches = backends::batchesOf(list, width, height);
+  if (batches.vertices.empty()) return;
   const VkDeviceSize bytes = batches.vertices.size() * sizeof(backends::Vertex);
   HostBuffer& vertices = vk.slots[slot].vertices;
   if (bytes > vertices.capacity) {
+    const VkDeviceSize size =
+        backends::vertexBufferBytes(bytes, vertices.capacity);
     vk.destroyBuffer(vertices);
-    vertices = vk.createBuffer(bytes * 2, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    vertices = vk.createBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
   }
   std::memcpy(vertices.mapped, batches.vertices.data(), bytes);
 
