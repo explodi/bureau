@@ -322,11 +322,13 @@ void D3D12Backend::draw(ID3D12GraphicsCommandList* commands, UINT slot,
   Impl& d3d = *impl_;
   if (d3d.pipeline == nullptr || list.quads.empty()) return;
   const auto batches = backends::batchesOf(list, width, height);
+  if (batches.vertices.empty()) return;
   const UINT64 bytes = batches.vertices.size() * sizeof(backends::Vertex);
   HostBuffer& vertices = d3d.slots[slot].vertices;
   if (bytes > vertices.capacity) {
+    const UINT64 size = backends::vertexBufferBytes(bytes, vertices.capacity);
     d3d.destroyBuffer(vertices);
-    vertices = d3d.createBuffer(bytes * 2);
+    vertices = d3d.createBuffer(size);
   }
   std::memcpy(vertices.mapped, batches.vertices.data(), bytes);
 

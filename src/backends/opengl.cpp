@@ -409,6 +409,7 @@ void OpenGlBackend::draw(const DisplayList& list, int width, int height) {
   if (list.quads.empty()) return;
   Impl& gl = *impl_;
   const auto batches = backends::batchesOf(list, width, height);
+  if (batches.vertices.empty()) return;
 
   GLint program = 0, vertexArray = 0, arrayBuffer = 0, activeTexture = 0;
   GLint texture[2] = {}, sampler[2] = {};

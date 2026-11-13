@@ -195,11 +195,13 @@ void D3D11Backend::draw(ID3D11DeviceContext* context, const DisplayList& list,
   Impl& d3d = *impl_;
   if (d3d.pixelShader == nullptr || list.quads.empty()) return;
   const auto batches = backends::batchesOf(list, width, height);
+  if (batches.vertices.empty()) return;
   const UINT bytes =
       static_cast<UINT>(batches.vertices.size() * sizeof(backends::Vertex));
   if (bytes > d3d.vertexCapacity) {
     release(d3d.vertices);
-    d3d.vertexCapacity = bytes * 2;
+    d3d.vertexCapacity =
+        static_cast<UINT>(backends::vertexBufferBytes(bytes, d3d.vertexCapacity));
     D3D11_BUFFER_DESC description{};
     description.ByteWidth = d3d.vertexCapacity;
     description.Usage = D3D11_USAGE_DYNAMIC;
