@@ -1,5 +1,7 @@
 #include "host.h"
 
+#include "awake_clock.h"
+
 #include <hermes/hermes.h>
 #include <jsi/jsi.h>
 #if BUREAU_ENABLE_DEBUGGER
@@ -101,7 +103,7 @@ std::string name_of(jsi::Runtime& runtime, const jsi::Function& callback) {
 struct Host::Impl {
   Impl(std::vector<uint8_t> bytes, Options chosen)
       : bytecode(std::move(bytes)), options(std::move(chosen)) {
-    started = std::chrono::steady_clock::now();
+    startedNs = awakeNanoseconds();
     worker = std::thread([this] { run(); });
     invoke([](jsi::Runtime&) {});
   }
@@ -126,7 +128,8 @@ struct Host::Impl {
 
   std::vector<uint8_t> bytecode;
   Options options;
-  std::chrono::steady_clock::time_point started;
+  /** performance.now()'s zero, on the awake clock. */
+  std::int64_t startedNs = 0;
   std::thread worker;
   std::mutex mutex;
   std::condition_variable wake;
@@ -207,9 +210,7 @@ struct Host::Impl {
 
   double clock() const {
     if (!options.realClock) return now_ms;
-    return std::chrono::duration<double, std::milli>(
-               std::chrono::steady_clock::now() - started)
-        .count();
+    return static_cast<double>(awakeNanoseconds() - startedNs) / 1e6;
   }
 
   void set_step(std::string step) {
