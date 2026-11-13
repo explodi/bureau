@@ -1046,9 +1046,11 @@ void View::typed(const std::string& entered) {
   selectAll_ = false;
   value.insert(caret, accepted);
   caret += accepted.size();
+  // The length counts UTF-16 units, as the client's checks do; counting bytes
+  // cut a letter such as é in half, and JSON refused the field's value.
   const float maxLength = number(*found, "maxLength", -1);
-  if (maxLength >= 0 && value.size() > static_cast<size_t>(maxLength)) {
-    value.resize(static_cast<size_t>(maxLength));
+  if (maxLength >= 0) {
+    value.resize(byteOffset(value, static_cast<size_t>(maxLength)));
     caret = std::min(caret, value.size());
   }
   live.caret = caret;

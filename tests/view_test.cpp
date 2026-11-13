@@ -1526,6 +1526,30 @@ TEST_CASE("native field length counts UTF-16 units without cutting a character")
   CHECK(fixture.handled("onChange").back().args == Json::array({"東京"}));
 }
 
+TEST_CASE("typed text counts a field's length in letters, not bytes") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-field",
+                                {{"value", ""}, {"onChange", true},
+                                 {"maxLength", 3}}).append(0, 1));
+  fixture.view.focus(1, true);
+  fixture.view.typed("ñañ");
+  CHECK(fixture.handled("onChange").back().args == Json::array({"ñañ"}));
+}
+
+TEST_CASE("typed text past a field's length keeps the last letter whole") {
+  Fixture fixture;
+  fixture.commit(Stream().create(1, "bureau-field",
+                                {{"value", "Sevill"}, {"onChange", true},
+                                 {"maxLength", 7}}).append(0, 1));
+  fixture.view.focus(1, true);
+  fixture.view.typed("éa");
+  fixture.commit(Stream().props(1, {{"value", "Sevillé"}}));
+  CHECK(fixture.handled("onChange").back().args.dump() == R"(["Sevillé"])");
+  CHECK(fixture.view.textInput()["selectionEnd"] == 7);
+  CHECK(fixture.view.textInput().dump().find(R"("value":"Sevillé")") !=
+        std::string::npos);
+}
+
 TEST_CASE("native text acknowledges an edit only after React commits its value") {
   Fixture fixture;
   fixture.commit(Stream().create(1, "bureau-field",

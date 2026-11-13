@@ -265,6 +265,17 @@ TEST_CASE("a task posted before the start runs after it, and one after the stop 
   CHECK(ran.load() == 1);
 }
 
+TEST_CASE("JSON for JavaScript reads a letter cut in half as a replacement character") {
+  const nlohmann::json cut = nlohmann::json::array({"Sevill\xC3"});
+  CHECK(bureau::bridge::jsonText(cut) == "[\"Sevill\xEF\xBF\xBD\"]");
+}
+
+TEST_CASE("JSON for JavaScript reads a Windows code page letter as a replacement character") {
+  // "Jo\xE3o" is João in Windows-1252.
+  const nlohmann::json ansi = {{"name", "Jo\xE3o"}};
+  CHECK(bureau::bridge::jsonText(ansi) == "{\"name\":\"Jo\xEF\xBF\xBDo\"}");
+}
+
 TEST_CASE("a mouse move with none waiting asks for a task") {
   bureau::js::PointerMoves moves;
   CHECK(moves.hold(moveTo(10)));

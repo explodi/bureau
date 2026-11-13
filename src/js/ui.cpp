@@ -133,7 +133,7 @@ struct Ui::Impl {
   /** After every turn: the view's new frame. */
   void publish(double nowMs) {
     const bool changed = view->frame(frozenClock.value_or(nowMs));
-    std::string textInput = view->textInput().dump();
+    std::string textInput = bridge::jsonText(view->textInput());
     const bool busy = changed ? view->windowBusy() : true;
     std::lock_guard lock(mutex);
     mailbox.textInput = std::move(textInput);
