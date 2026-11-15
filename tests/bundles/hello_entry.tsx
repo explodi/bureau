@@ -1,7 +1,7 @@
 // A whole little UI, as a game writes one: the kit, its default platform, and a
 // function of the game's own on `__native`.
 import { useState } from "react";
-import { Box, Text } from "bureau/primitives";
+import { Box, Image, Text } from "bureau/primitives";
 import { Button } from "bureau/kit/Bureau.tsx";
 import { render } from "bureau/kit/render.ts";
 
@@ -23,6 +23,7 @@ function Hello() {
       >
         Press
       </Button>
+      <Image id="picture" source="/icons/controller-xbox-a.png" />
     </Box>
   );
 }

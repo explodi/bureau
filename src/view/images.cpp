@@ -101,9 +101,32 @@ Bitmap padded(const Bitmap& source, int left, int top, int right, int bottom) {
 
 }  // namespace
 
-ImageStore::ImageStore(Reader read) : read_(std::move(read)) {}
+ImageStore::ImageStore(Reader read, Ask ask)
+    : read_(std::move(read)), ask_(std::move(ask)) {}
 
 ImageStore::~ImageStore() = default;
+
+/** Whether `source` is a file being read away from this thread: taken by
+ * `ask_` now if it was not before. */
+bool ImageStore::onItsWay(const std::string& source) {
+  if (onItsWay_.contains(source)) return true;
+  const bool isFile = !source.empty() && !source.starts_with("data:");
+  if (!ask_ || !isFile || !ask_(source)) return false;
+  onItsWay_.insert(source);
+  return true;
+}
+
+void ImageStore::arrived(const std::string& source, Bytes bytes) {
+  if (onItsWay_.erase(source) == 0) return;
+  if (source.ends_with(".svg")) {
+    parsed_.emplace(
+        source, bytes ? parseVector(std::string(bytes->begin(), bytes->end()))
+                      : nullptr);
+    return;
+  }
+  decoded_.emplace(source,
+                   bytes ? decode(bytes->data(), bytes->size()) : nullptr);
+}
 
 const VectorPicture* ImageStore::vector(const std::string& source) {
   if (!source.ends_with(".svg")) return nullptr;
@@ -111,6 +134,7 @@ const VectorPicture* ImageStore::vector(const std::string& source) {
     if (!found->second) missing_.insert(source);
     return found->second.get();
   }
+  if (onItsWay(source)) return nullptr;
   std::unique_ptr<VectorPicture> picture;
   if (const auto bytes = read_(source)) {
     picture = parseVector(std::string(bytes->begin(), bytes->end()));
@@ -127,6 +151,7 @@ const Bitmap* ImageStore::get(const std::string& source) {
     if (!found->second && !source.empty()) missing_.insert(source);
     return found->second.get();
   }
+  if (onItsWay(source)) return nullptr;
   std::unique_ptr<Bitmap> bitmap;
   const std::string dataPrefix = "data:image/png;base64,";
   if (source.starts_with(dataPrefix)) {

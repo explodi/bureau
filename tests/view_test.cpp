@@ -68,10 +68,11 @@ struct Recorded {
 
 /** A view of a literal tree, 400 by 300 points at one pixel each. */
 struct Fixture {
-  bureau::View view{readPublic};
+  bureau::View view;
   std::vector<Recorded> calls;
   Json answer = nullptr;
-  explicit Fixture(float scale = 1) {
+  explicit Fixture(float scale = 1, bureau::ImageStore::Ask askPicture = nullptr)
+      : view(readPublic, std::move(askPicture)) {
     REQUIRE(view.loadTokens(tokenDocument()));
     view.setViewport(400, 300, scale);
     view.setDispatch([this](int node, std::string_view handler, const Json& args) {
@@ -390,6 +391,31 @@ TEST_CASE("a Text measures to its runs set in the UI face") {
   // A column stretches its items across, as a block does.
   CHECK(text.width == doctest::Approx(200));
   CHECK(text.height == 21.59375f);
+}
+
+TEST_CASE("texts of two sizes in a row aligned on baselines share one baseline") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"width", 300}, {"align", "baseline"}, {"gap", 8}})
+                     .create(2, "bureau-text", {{"typeStyle", "ui-14-solid"}})
+                     .text(3, "Middlington")
+                     .create(4, "bureau-text", {{"typeStyle", "mono-10-solid"}})
+                     .text(5, "5.5M wanted")
+                     .append(2, 3)
+                     .append(4, 5)
+                     .append(1, 2)
+                     .append(1, 4)
+                     .append(0, 1));
+  const auto name = fixture.rect(2);
+  const auto figure = fixture.rect(4);
+  // The 14px line's baseline stands 2px lower in its box than the 10px
+  // line's does in its own, so the figure's box starts 2px down; bottom to
+  // bottom, as Yoga sets texts without a baseline, it would start 4px down.
+  CHECK(name.y == 0);
+  CHECK(name.height == 14);
+  CHECK(figure.y == 2);
+  CHECK(figure.height == 10);
 }
 
 TEST_CASE("a plated run's sides and trailing gap take room on its line") {
@@ -3008,6 +3034,71 @@ TEST_CASE("a known icon occupies its literal atlas rectangle and keeps its pixel
         std::vector<std::string>{"/bureau/not-a-real-picture.png"});
 }
 
+TEST_CASE("a picture read away from the view lays out without it until it arrives") {
+  Fixture fixture(1, [](const std::string&) { return true; });
+  fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
+  fixture.view.frame(0);
+  CHECK(fixture.rect(1).width == 0);
+  CHECK(fixture.view.displayList()->quads.empty());
+  CHECK(fixture.view.displayList()->missingImages.empty());
+}
+
+TEST_CASE("a picture read away from the view lays out at its size once it arrives") {
+  Fixture fixture(1, [](const std::string&) { return true; });
+  fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
+  fixture.view.frame(0);
+  fixture.view.pictureArrived("/icons/controller-xbox-a.png",
+                              readPublic("/icons/controller-xbox-a.png"));
+  fixture.view.frame(1);
+  CHECK(fixture.rect(1).width == 12);
+  CHECK(fixture.view.displayList()->quads.size() == 1);
+}
+
+TEST_CASE("a picture read away from the view is asked for once") {
+  std::vector<std::string> asked;
+  Fixture fixture(1, [&](const std::string& path) {
+    asked.push_back(path);
+    return true;
+  });
+  fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
+  fixture.view.frame(0);
+  fixture.commit(Stream().props(1, {{"width", 20}}));
+  fixture.view.frame(1);
+  CHECK(asked == std::vector<std::string>{"/icons/controller-xbox-a.png"});
+}
+
+TEST_CASE("a picture that arrives unread is missing") {
+  Fixture fixture(1, [](const std::string&) { return true; });
+  fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
+  fixture.view.frame(0);
+  fixture.view.pictureArrived("/icons/controller-xbox-a.png", nullptr);
+  fixture.view.frame(1);
+  CHECK(fixture.view.displayList()->missingImages ==
+        std::vector<std::string>{"/icons/controller-xbox-a.png"});
+}
+
+TEST_CASE("a picture the asker leaves is read where it first lays out") {
+  Fixture fixture(1, [](const std::string&) { return false; });
+  fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
+  fixture.view.frame(0);
+  CHECK(fixture.rect(1).width == 12);
+}
+
+TEST_CASE("a picture written into its source is never asked for") {
+  std::vector<std::string> asked;
+  Fixture fixture(1, [&](const std::string& path) {
+    asked.push_back(path);
+    return true;
+  });
+  fixture.commit(Stream().create(1, "bureau-image",
+                                 {{"source", "data:image/png;base64,bm90LWFuLWltYWdl"},
+                                  {"width", 20},
+                                  {"height", 20}})
+                     .append(0, 1));
+  fixture.view.frame(0);
+  CHECK(asked.empty());
+}
+
 TEST_CASE("image capture failures describe the current visible frame") {
   Fixture fixture;
   fixture.commit(
@@ -3640,6 +3731,18 @@ TEST_CASE("an SVG picture lays out at its own size and draws at its device pixel
   CHECK(quad.y1 - quad.y0 == 338);
   CHECK_FALSE(quad.smooth);
   CHECK(fixture.view.displayList()->missingImages.empty());
+}
+
+TEST_CASE("an SVG picture read away from the view lays out at its size once it arrives") {
+  Fixture fixture(1, [](const std::string&) { return true; });
+  fixture.commit(Stream()
+    .create(1, "bureau-image", {{"source", "/pictures/figures.svg"}})
+    .append(0, 1));
+  fixture.view.frame(0);
+  fixture.view.pictureArrived("/pictures/figures.svg",
+                              readPublic("/pictures/figures.svg"));
+  fixture.view.frame(1);
+  CHECK(fixture.rect(1).width == 171);
 }
 
 TEST_CASE("an SVG picture that cannot be read is reported missing") {

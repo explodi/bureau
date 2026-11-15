@@ -38,6 +38,8 @@ std::optional<std::string> readFile(const std::string& path) {
 
 /** A file whose read waits for the test (Game::slowDisk). */
 const std::string kSlowFile = "/keyboards/readings.json";
+/** The hello bundle's picture. */
+const std::string kPicture = "/icons/controller-xbox-a.png";
 
 /** A little game: the hello bundle, with its one function of its own. */
 struct Game {
@@ -53,21 +55,29 @@ struct Game {
   std::shared_ptr<const bureau::DisplayList> list;
   std::unique_ptr<bureau::Ui> ui;
 
-  explicit Game(int atlasSize = bureau::kAtlasSize, bool monochromeText = false) {
+  /** `picturesOnDisk`: the game holds no picture in memory, and kPicture's
+   * read waits for slowDisk as kSlowFile's does. */
+  explicit Game(int atlasSize = bureau::kAtlasSize, bool monochromeText = false,
+                bool picturesOnDisk = false) {
     bureau::Ui::Options options;
     options.atlasSize = atlasSize;
     options.monochromeText = monochromeText;
+    if (picturesOnDisk) {
+      options.holdsAsset = [](const std::string&) { return false; };
+    }
     const auto bytecode = readFile(BUREAU_HELLO_BUNDLE);
     REQUIRE(bytecode.has_value());
     options.bytecode.assign(bytecode->begin(), bytecode->end());
     options.tokens = readFile(BUREAU_TOKENS_JSON).value();
-    options.readAsset = [this](const std::string& path) {
+    options.readAsset = [this, picturesOnDisk](const std::string& path) {
       if (ui) {
         std::lock_guard lock(readsMutex);
         doingInRead[path] = ui->doing();
       }
       // Bounded, so a read on the UI's thread fails the test, not hangs it.
-      if (path == kSlowFile) slowDiskDone.wait_for(std::chrono::seconds(5));
+      const bool slow =
+          path == kSlowFile || (picturesOnDisk && path == kPicture);
+      if (slow) slowDiskDone.wait_for(std::chrono::seconds(5));
       return readFile(std::string(BUREAU_ASSETS_DIR) + path);
     };
     options.width = 320;
@@ -209,6 +219,24 @@ TEST_CASE("the interface answers while a file TypeScript asked for is read") {
 
   CHECK_FALSE(answeredWhileReading);
   CHECK(answer->starts_with("{"));
+  game.ui->stop();
+}
+
+TEST_CASE("a picture the game does not hold is left out while it is read") {
+  Game game(bureau::kAtlasSize, false, true);
+  game.until([&] { return game.drew(); });
+  const bureau::UiRect whileReading = game.rectOf("picture");
+  game.slowDisk.set_value();
+  CHECK(whileReading.width == 0);
+  game.ui->stop();
+}
+
+TEST_CASE("a picture the game does not hold is drawn once it is read") {
+  Game game(bureau::kAtlasSize, false, true);
+  game.until([&] { return game.drew(); });
+  game.slowDisk.set_value();
+  game.until([&] { return game.rectOf("picture").width > 0; });
+  CHECK(game.rectOf("picture").width == 12);
   game.ui->stop();
 }
 

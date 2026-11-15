@@ -41,7 +41,7 @@ export function StatList(
             </Text>
           </Box>
           <Box direction="column" margin={[0, 0, 0, 8]}>
-            <Text typeStyle="mono-12-figures-solid" ink={item.ink ?? "ink"}>
+            <Text typeStyle="mono-11-figures-solid" ink={item.ink ?? "ink"}>
               {item.value}
             </Text>
             {item.note && <StatNote>{item.note}</StatNote>}

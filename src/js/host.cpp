@@ -237,6 +237,12 @@ struct Host::Impl {
   Host::Turn turn;
   /** When the running step began, on turnStartedNs's clock; under turnMutex. */
   std::int64_t stepStartedNs = 0;
+  /** The running turn's finished runs of each step; under turnMutex. */
+  struct StepRuns {
+    double ms = 0;
+    std::size_t runs = 0;
+  };
+  std::map<std::string, StepRuns> stepRuns;
   std::mutex debuggerMutex;
   std::mutex debuggerCommandMutex;
   std::vector<std::string> debuggerMessages;
@@ -290,6 +296,11 @@ struct Host::Impl {
     const std::int64_t now = steady_ns();
     std::lock_guard lock(turnMutex);
     const double finishedMs = static_cast<double>(now - stepStartedNs) / 1e6;
+    if (!turn.step.empty()) {
+      StepRuns& finished = stepRuns[turn.step];
+      finished.ms += finishedMs;
+      ++finished.runs;
+    }
     const bool slowest = !turn.step.empty() && finishedMs > turn.slowestStepMs;
     if (slowest) {
       turn.slowestStep = std::move(turn.step);
@@ -310,6 +321,14 @@ struct Host::Impl {
   void enter_microtasks() {
     std::lock_guard lock(turnMutex);
     turn.callback += " > microtasks";
+  }
+
+  /** A posted task has returned; the microtasks it queued run next, React's
+   * render of what an input's handlers changed among them. A task that ran
+   * callbacks has named their microtasks already. */
+  void enter_task_microtasks() {
+    std::lock_guard lock(turnMutex);
+    if (turn.callback.empty()) turn.callback = "microtasks";
   }
 
   void report(const std::string& message) {
@@ -601,12 +620,17 @@ struct Host::Impl {
                           .tasksRun = 0,
                           .stepMs = 0,
                           .slowestStep = "",
-                          .slowestStepMs = 0};
+                          .slowestStepMs = 0,
+                          .busiestStep = "",
+                          .busiestStepMs = 0,
+                          .busiestStepRuns = 0};
         stepStartedNs = turnStartedNs;
+        stepRuns.clear();
       }
       for (auto& task : batch) {
         set_step(std::move(task.step));
         guarded([&] { task.run(); });
+        enter_task_microtasks();
         if (runtime) guarded([&] { drain(*runtime); });
         std::lock_guard lock(turnMutex);
         ++turn.tasksRun;
@@ -795,6 +819,18 @@ Host::Turn Host::turn() const {
   std::lock_guard lock(impl_->turnMutex);
   Turn turn = impl_->turn;
   turn.stepMs = static_cast<double>(steady_ns() - impl_->stepStartedNs) / 1e6;
+  auto runs = impl_->stepRuns;
+  if (!turn.step.empty()) {
+    Impl::StepRuns& running = runs[turn.step];
+    running.ms += turn.stepMs;
+    ++running.runs;
+  }
+  for (const auto& [step, total] : runs) {
+    if (total.ms <= turn.busiestStepMs) continue;
+    turn.busiestStep = step;
+    turn.busiestStepMs = total.ms;
+    turn.busiestStepRuns = total.runs;
+  }
   return turn;
 }
 

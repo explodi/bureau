@@ -200,6 +200,26 @@ struct Ui::Impl {
     return options.readAsset ? options.readAsset(path) : std::nullopt;
   }
 
+  /** The view's ImageStore::Ask: a picture the game does not hold in memory
+   * is read on the reading thread and handed to the view on the UI's, so a
+   * disk that takes seconds over it holds that thread, not the interface. */
+  bool askPicture(const std::string& path) {
+    const bool held = !options.holdsAsset || options.holdsAsset(path);
+    if (held) return false;
+    readLater([this, path] {
+      auto bytes = options.readAsset ? options.readAsset(path) : std::nullopt;
+      ImageStore::Bytes picture;
+      if (bytes) {
+        picture = std::make_shared<const std::vector<uint8_t>>(bytes->begin(),
+                                                               bytes->end());
+      }
+      post([this, path,
+            picture](jsi::Runtime&) { view->pictureArrived(path, picture); },
+           "picture");
+    });
+    return true;
+  }
+
   void installNative(jsi::Runtime& js) {
     // A reload starts the tree again.
     view->clear();
@@ -326,7 +346,8 @@ Ui::Ui(Options options) : impl_(std::make_unique<Impl>()) {
         if (!bytes) return nullptr;
         return std::make_shared<const std::vector<uint8_t>>(bytes->begin(),
                                                             bytes->end());
-      });
+      },
+      [impl](const std::string& path) { return impl->askPicture(path); });
   impl->view->setAtlas(impl->options.atlasSize, impl->options.atlasPageBudget);
   impl->view->setMonochromeText(impl->options.monochromeText);
   impl->view->loadTokens(impl->options.tokens);

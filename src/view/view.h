@@ -52,9 +52,11 @@ using Dispatch = std::function<nlohmann::json(
 
 class View {
  public:
-  using Reader = std::function<std::shared_ptr<const std::vector<uint8_t>>(
-      const std::string& path)>;
-  explicit View(Reader read);
+  using Reader = ImageStore::Reader;
+  /** `askPicture`, when given, may take a picture to read away from the
+   * view's thread (ImageStore::Ask): the view lays out and paints without it
+   * until `pictureArrived`. Faces are always read by `read`. */
+  explicit View(Reader read, ImageStore::Ask askPicture = nullptr);
   ~View();
   View(const View&) = delete;
   View& operator=(const View&) = delete;
@@ -106,6 +108,9 @@ class View {
   const std::string& composing() const { return composing_; }
   nlohmann::json textInput();
   void editText(const nlohmann::json& edit);
+  /** A picture `askPicture` took, or nothing when it could not be read: the
+   * next frame lays it out at its size and paints it. */
+  void pictureArrived(const std::string& path, ImageStore::Bytes bytes);
   /** A game's event updates bindings without a React commit. */
   void event(const nlohmann::json& frame);
   /** Forgets what the events said: what they described is gone. */
