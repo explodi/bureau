@@ -96,8 +96,8 @@ class Host {
     /** The timer, immediate or frame callback the step is in, by its
      * function's name ("anonymous" without one); empty outside them. React's
      * scheduler is "performWorkUntilDeadline". The microtasks a callback
-     * queued run after it returns, as "<name> > microtasks": React's
-     * synchronous renders are among them. */
+     * queued run after it returns, as "<name> > microtasks", and a posted
+     * task's as "microtasks": React's synchronous renders are among them. */
     std::string callback;
     std::size_t tasks = 0;
     std::size_t tasksRun = 0;
@@ -108,6 +108,12 @@ class Host {
      * the turn is in its first. */
     std::string slowestStep;
     double slowestStepMs = 0;
+    /** The step whose runs, the running one included, add up to the most of
+     * the turn so far, their time and how many there were: one long run, or
+     * a burst of short ones queued behind a slow turn. */
+    std::string busiestStep;
+    double busiestStepMs = 0;
+    std::size_t busiestStepRuns = 0;
   };
   Turn turn() const;
 

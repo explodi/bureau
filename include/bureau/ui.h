@@ -58,9 +58,15 @@ class Ui {
     /** A file the UI asks for by its path under the game's assets (`/fonts/…`,
      * pictures); nothing when there is none. On the UI's thread for the
      * view's faces and pictures, and on a thread of the UI's own for what
-     * TypeScript reads (`assetText`, `assetBytes`), so it must be safe to
-     * call from both. */
+     * TypeScript reads (`assetText`, `assetBytes`) and pictures `holdsAsset`
+     * does not hold, so it must be safe to call from both. */
     std::function<std::optional<std::string>(const std::string& path)> readAsset;
+    /** Whether `readAsset` answers `path` from memory, without waiting on a
+     * disk. Given, a picture it does not hold is read on the UI's own reading
+     * thread, and the view lays out and paints without it until it arrives.
+     * Empty: the view reads each picture on the UI's thread, where it first
+     * lays it out. Called on the UI's thread. */
+    std::function<bool(const std::string& path)> holdsAsset;
     /** The window, in points, and its device pixels per point. */
     float width = 1280;
     float height = 720;

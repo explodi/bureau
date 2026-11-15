@@ -295,6 +295,32 @@ TEST_CASE("a held frame names its callback's microtasks apart from it") {
   CHECK(host.take_error().empty());
 }
 
+TEST_CASE("a held task names the microtasks it queued apart from it") {
+  bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto ready = entered.get_future();
+  auto held = release.get_future();
+  host.post(
+      [&](facebook::jsi::Runtime& runtime) {
+        runtime.queueMicrotask(facebook::jsi::Function::createFromHostFunction(
+            runtime, facebook::jsi::PropNameID::forAscii(runtime, "render"), 0,
+            [&](facebook::jsi::Runtime&, const facebook::jsi::Value&,
+                const facebook::jsi::Value*, size_t) {
+              entered.set_value();
+              held.wait();
+              return facebook::jsi::Value::undefined();
+            }));
+      },
+      "pointer down");
+  ready.wait();
+  const auto turn = host.turn();
+  release.set_value();
+  CHECK(turn.step == "pointer down");
+  CHECK(turn.callback == "microtasks");
+  CHECK(host.take_error().empty());
+}
+
 TEST_CASE("a held turn times its step apart from the steps before it") {
   bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
   std::promise<void> blocking;
@@ -329,6 +355,50 @@ TEST_CASE("a held turn times its step apart from the steps before it") {
   CHECK(busyMs - turn.stepMs >= 50);
   CHECK(turn.slowestStep == "worldLoaded");
   CHECK(turn.slowestStepMs >= 50);
+  CHECK(host.take_error().empty());
+}
+
+TEST_CASE("a held turn names the step whose runs took the most of it") {
+  bureau::js::Host host(read_bytes(BUREAU_CLOSURE_BUNDLE));
+  std::promise<void> blocking;
+  std::promise<void> unblock;
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto blocked = blocking.get_future();
+  auto unblocked = unblock.get_future();
+  auto ready = entered.get_future();
+  auto held = release.get_future();
+  host.post([&](facebook::jsi::Runtime&) {
+    blocking.set_value();
+    unblocked.wait();
+  });
+  blocked.wait();
+  // Queued behind the blocking turn, all run in the next one: each wheel is
+  // shorter than the load, the three together longer.
+  const auto wheel = [](facebook::jsi::Runtime&) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(40));
+  };
+  host.post(wheel, "pointer wheel");
+  host.post(
+      [](facebook::jsi::Runtime&) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(60));
+      },
+      "worldLoaded");
+  host.post(wheel, "pointer wheel");
+  host.post(wheel, "pointer wheel");
+  host.post(
+      [&](facebook::jsi::Runtime&) {
+        entered.set_value();
+        held.wait();
+      },
+      "tickEvents");
+  unblock.set_value();
+  ready.wait();
+  const auto turn = host.turn();
+  release.set_value();
+  CHECK(turn.busiestStep == "pointer wheel");
+  CHECK(turn.busiestStepRuns == 3);
+  CHECK(turn.busiestStepMs >= 120);
   CHECK(host.take_error().empty());
 }
 

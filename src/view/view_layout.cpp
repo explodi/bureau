@@ -308,6 +308,16 @@ YGSize measureTextLeaf(YGNodeConstRef node, float width, YGMeasureMode widthMode
   return YGSize{measured, paragraph.height};
 }
 
+/** A text's first line's baseline, for a row aligned on baselines: texts of
+ * two sizes then share one baseline rather than one bottom edge, which is
+ * what Yoga falls back to without it. */
+float textLeafBaseline(YGNodeConstRef node, float width, float height) {
+  auto* measure = static_cast<TextMeasure*>(YGNodeGetContext(node));
+  const text::Paragraph& paragraph = measure->at(width);
+  if (paragraph.lines.empty()) return height;
+  return paragraph.lines.front().baseline;
+}
+
 bool hidden(const Node& node) { return flag(node, "__hidden"); }
 
 }  // namespace
@@ -545,6 +555,7 @@ void View::layoutTree() {
     YGNodeStyleSetMinWidth(yoga, minimum);
     YGNodeSetContext(yoga, measure.get());
     YGNodeSetMeasureFunc(yoga, measureTextLeaf);
+    YGNodeSetBaselineFunc(yoga, textLeafBaseline);
     measures.push_back(std::move(measure));
   };
 

@@ -27,16 +27,22 @@ struct Bitmap {
 
 class ImageStore {
  public:
-  using Reader = std::function<std::shared_ptr<const std::vector<uint8_t>>(
-      const std::string& path)>;
-  explicit ImageStore(Reader read);
+  using Bytes = std::shared_ptr<const std::vector<uint8_t>>;
+  using Reader = std::function<Bytes(const std::string& path)>;
+  /** Takes a file to read away from the store's thread, answering true; it
+   * comes back through `arrived`. False leaves it to `Reader`, at once. */
+  using Ask = std::function<bool(const std::string& path)>;
+  explicit ImageStore(Reader read, Ask ask = nullptr);
   ~ImageStore();
 
-  /** Null when the source cannot be read or decoded, or is an SVG. */
+  /** Null when the source cannot be read or decoded, is an SVG, or is still
+   * on its way from `Ask`. */
   const Bitmap* get(const std::string& source);
-  /** An `.svg` source parsed (vector.h); null for any other, or one that
-   * cannot be read or parsed. */
+  /** An `.svg` source parsed (vector.h); null for any other, one that cannot
+   * be read or parsed, or one still on its way. */
   const VectorPicture* vector(const std::string& source);
+  /** A file `Ask` took, or nothing when it could not be read. */
+  void arrived(const std::string& source, Bytes bytes);
   /** Failures belong to the current paint, not an earlier hidden window. */
   void beginPaint() { missing_.clear(); }
   std::vector<std::string> missingImages() const {
@@ -44,9 +50,14 @@ class ImageStore {
   }
 
  private:
+  bool onItsWay(const std::string& source);
+
   Reader read_;
+  Ask ask_;
   std::map<std::string, std::unique_ptr<Bitmap>> decoded_;
   std::map<std::string, std::unique_ptr<VectorPicture>> parsed_;
+  /** Taken by `ask_` and not yet arrived: neither drawn nor missing. */
+  std::set<std::string> onItsWay_;
   std::set<std::string> missing_;
 };
 

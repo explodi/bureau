@@ -3180,11 +3180,20 @@ export const TYPE_METRICS = {
     letterSpacing: 0,
     figures: "tabular",
   },
-  // A stat list's figures and its column labels at 1.2.
+  // A stat list's column labels at 1.2.
   "mono-12-figures-solid": {
     face: "mono",
     size: 12,
     lineHeight: 12,
+    letterSpacing: 0,
+    figures: "tabular",
+  },
+  // A stat list's figures beside their 14px labels: the data face reads a
+  // size larger than the UI face at the same size, so it is set one smaller.
+  "mono-11-figures-solid": {
+    face: "mono",
+    size: 11,
+    lineHeight: 11,
     letterSpacing: 0,
     figures: "tabular",
   },
@@ -3902,6 +3911,50 @@ export const ANIMATIONS = {
     hold: [
       { atMs: 0, shown: true },
       { atMs: 100, shown: false },
+    ],
+  },
+  // A conveyor's strip (Conveyor): two copies of a pattern, moved one copy's
+  // length each cycle so the second takes the first's place without a seam.
+  // The caller sets the cycle from the strip's length and its speed. Under
+  // reduced motion the strip stands where its cycle starts.
+  "bureau-flow-down": {
+    durationMs: 1000,
+    easing: "linear",
+    repeat: "forever",
+    stillAtMs: 0,
+    frames: [
+      { at: [0], translateYPercent: -50 },
+      { at: [100], translateYPercent: 0 },
+    ],
+  },
+  "bureau-flow-up": {
+    durationMs: 1000,
+    easing: "linear",
+    repeat: "forever",
+    stillAtMs: 0,
+    frames: [
+      { at: [0], translateYPercent: 0 },
+      { at: [100], translateYPercent: -50 },
+    ],
+  },
+  "bureau-flow-right": {
+    durationMs: 1000,
+    easing: "linear",
+    repeat: "forever",
+    stillAtMs: 0,
+    frames: [
+      { at: [0], translateXPercent: -50 },
+      { at: [100], translateXPercent: 0 },
+    ],
+  },
+  "bureau-flow-left": {
+    durationMs: 1000,
+    easing: "linear",
+    repeat: "forever",
+    stillAtMs: 0,
+    frames: [
+      { at: [0], translateXPercent: 0 },
+      { at: [100], translateXPercent: -50 },
     ],
   },
   // "+1" rising off a key and fading: linear, the fill tempo.

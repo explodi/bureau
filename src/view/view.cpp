@@ -17,10 +17,17 @@ UiRect intersect(const UiRect& a, const UiRect& b) {
                 std::max(0.0f, bottom - top)};
 }
 
-View::View(Reader read)
-    : fonts_(read), typesetter_(fonts_, tokens_), images_(read) {}
+View::View(Reader read, ImageStore::Ask askPicture)
+    : fonts_(read),
+      typesetter_(fonts_, tokens_),
+      images_(read, std::move(askPicture)) {}
 
 View::~View() = default;
+
+void View::pictureArrived(const std::string& path, ImageStore::Bytes bytes) {
+  images_.arrived(path, std::move(bytes));
+  layoutDirty_ = true;
+}
 
 bool View::loadTokens(std::string_view json) {
   const bool loaded = tokens_.load(json);
