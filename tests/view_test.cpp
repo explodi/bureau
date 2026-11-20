@@ -235,6 +235,70 @@ TEST_CASE("a click on a box tells its press it was no finger") {
         Json::array({Json{{"touch", false}}}));
 }
 
+/** Two 40-point pressable boxes, 1 above 2, at the top-left corner. */
+Stream twoPressableBoxes() {
+  return Stream()
+      .create(1, "bureau-box",
+              {{"width", 40}, {"height", 40}, {"onPress", true}})
+      .create(2, "bureau-box",
+              {{"width", 40}, {"height", 40}, {"onPress", true}})
+      .append(0, 1)
+      .append(0, 2);
+}
+
+bureau::PointerEvent touchAt(bureau::PointerEvent::Kind kind, int id, float x,
+                             float y) {
+  bureau::PointerEvent event{kind, x, y};
+  event.touch = true;
+  event.id = id;
+  return event;
+}
+
+TEST_CASE("a finger presses beside a palm resting on the controls") {
+  Fixture fixture;
+  fixture.commit(twoPressableBoxes());
+  fixture.view.frame(0);
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Down, 1, 10, 10));
+  fixture.view.frame(600);
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Down, 2, 10, 60));
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Up, 2, 10, 60));
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Up, 1, 10, 10));
+  REQUIRE(fixture.handled("onPress").size() == 1);
+  CHECK(fixture.handled("onPress").front().node == 2);
+}
+
+TEST_CASE("a second finger during a tap leaves the tap its press") {
+  Fixture fixture;
+  fixture.commit(twoPressableBoxes());
+  fixture.view.frame(0);
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Down, 1, 10, 10));
+  fixture.view.frame(100);
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Down, 2, 10, 60));
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Up, 2, 10, 60));
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Up, 1, 10, 10));
+  REQUIRE(fixture.handled("onPress").size() == 1);
+  CHECK(fixture.handled("onPress").front().node == 1);
+}
+
+TEST_CASE("a finger dragging a control keeps it from a second finger") {
+  Fixture fixture;
+  fixture.commit(Stream()
+                     .create(1, "bureau-box",
+                             {{"width", 40}, {"height", 40}, {"onDrag", true}})
+                     .create(2, "bureau-box",
+                             {{"width", 40}, {"height", 40}, {"onPress", true}})
+                     .append(0, 1)
+                     .append(0, 2));
+  fixture.view.frame(0);
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Down, 1, 10, 10));
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Move, 1, 30, 10));
+  fixture.view.frame(600);
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Down, 2, 10, 60));
+  fixture.view.pointer(touchAt(bureau::PointerEvent::Kind::Up, 2, 10, 60));
+  CHECK(fixture.handled("onPress").empty());
+  CHECK(fixture.handled("onDrag").size() == 1);
+}
+
 TEST_CASE("a click with Shift and Ctrl held tells its press so") {
   Fixture fixture;
   fixture.commit(pressableBox());
