@@ -12,7 +12,8 @@ namespace {
 
 /** Travel past this is a drag, so letting go is not also a press. */
 constexpr float kDragSlop = 8;
-// Long enough that a finger starting a scroll has passed the slop by then.
+// Long enough that a finger starting a scroll has passed the slop by then,
+// and a tap has lifted: a finger still down and unmoved is resting.
 constexpr double kFingerRestMs = 250;
 
 Json keyJson(const KeyEvent& event) {
@@ -529,6 +530,18 @@ void View::pointer(const PointerEvent& event) {
       return;
     }
     // A control owns one finger until release; another cannot steal its drag.
+    // A finger that has rested unmoved longer than a tap is the hand holding
+    // the device, though, and a new finger takes the controls from it.
+    const bool resting =
+        uiTouch_ && !press_.moved && nowMs_ - press_.startMs >= kFingerRestMs;
+    if (begins && resting) {
+      PointerEvent cancel = event;
+      cancel.kind = PointerEvent::Kind::Cancel;
+      cancel.id = *uiTouch_;
+      cancel.x = press_.startX * uiScale_;
+      cancel.y = press_.startY * uiScale_;
+      pointer(cancel);
+    }
     if (begins && !uiTouch_) uiTouch_ = event.id;
     if (!uiTouch_ || *uiTouch_ != event.id) return;
     if (ends) uiTouch_.reset();
@@ -694,6 +707,7 @@ void View::pointer(const PointerEvent& event) {
     press_ = Press{};
     press_.startX = x;
     press_.startY = y;
+    press_.startMs = nowMs_;
     press_.touch = event.touch;
     // The innermost box that presses owns the press; the nearest that drags
     // hears its travel.
@@ -722,7 +736,6 @@ void View::pointer(const PointerEvent& event) {
       press_.scrollSampleX = press_.scrollStartX;
       press_.scrollSampleY = press_.scrollStartY;
       press_.scrollSampleMs = nowMs_;
-      press_.startMs = nowMs_;
       // Stopping a coast is part of scrolling: the finger taps nothing.
       press_.moved = fingerScroll == coasting;
     } else {
