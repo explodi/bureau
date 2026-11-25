@@ -200,22 +200,25 @@ struct Ui::Impl {
     return options.readAsset ? options.readAsset(path) : std::nullopt;
   }
 
-  /** The view's ImageStore::Ask: a picture the game does not hold in memory
-   * is read on the reading thread and handed to the view on the UI's, so a
-   * disk that takes seconds over it holds that thread, not the interface. */
-  bool askPicture(const std::string& path) {
+  using Arrived = void (View::*)(const std::string&, ImageStore::Bytes);
+
+  /** The view's asks: a picture or a face file the game does not hold in
+   * memory is read on the reading thread and handed to the view's `arrived`
+   * on the UI's, so a disk that takes seconds over it holds that thread, not
+   * the interface. */
+  bool askFile(const std::string& path, Arrived arrived, const char* tag) {
     const bool held = !options.holdsAsset || options.holdsAsset(path);
     if (held) return false;
-    readLater([this, path] {
+    readLater([this, path, arrived, tag] {
       auto bytes = options.readAsset ? options.readAsset(path) : std::nullopt;
-      ImageStore::Bytes picture;
+      ImageStore::Bytes file;
       if (bytes) {
-        picture = std::make_shared<const std::vector<uint8_t>>(bytes->begin(),
-                                                               bytes->end());
+        file = std::make_shared<const std::vector<uint8_t>>(bytes->begin(),
+                                                            bytes->end());
       }
-      post([this, path,
-            picture](jsi::Runtime&) { view->pictureArrived(path, picture); },
-           "picture");
+      post([this, path, arrived,
+            file](jsi::Runtime&) { (view.get()->*arrived)(path, file); },
+           tag);
     });
     return true;
   }
@@ -347,7 +350,12 @@ Ui::Ui(Options options) : impl_(std::make_unique<Impl>()) {
         return std::make_shared<const std::vector<uint8_t>>(bytes->begin(),
                                                             bytes->end());
       },
-      [impl](const std::string& path) { return impl->askPicture(path); });
+      [impl](const std::string& path) {
+        return impl->askFile(path, &View::pictureArrived, "picture");
+      },
+      [impl](const std::string& path) {
+        return impl->askFile(path, &View::faceArrived, "face");
+      });
   impl->view->setAtlas(impl->options.atlasSize, impl->options.atlasPageBudget);
   impl->view->setMonochromeText(impl->options.monochromeText);
   impl->view->loadTokens(impl->options.tokens);

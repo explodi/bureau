@@ -278,9 +278,11 @@ export type PrintInk = `print-${PrintName}`;
 export const WEB = { "page": "#f3f2ef" } as const;
 
 /**
- * Data colours the stats window's charts drew before the register had a
- * palette, outside DB32: the income classes, a mover with no recorded
- * reason, a failed arrival. Kept as they are until they are redrawn in DB32.
+ * Data colours outside DB32. The stats window's charts drew the first five
+ * before the register had a palette (the income classes, a mover with no
+ * recorded reason, a failed arrival), kept until they are redrawn in DB32.
+ * The transit lines' four are MICRO64's past DB32, chosen so a line's
+ * colour is none of the bus lines'.
  */
 export const CHART = {
   "income-lower": "#f44336",
@@ -288,6 +290,10 @@ export const CHART = {
   "income-upper": "#4caf50",
   "unrecorded": "#999999",
   "failed-arrival": "#c99ec4",
+  "line-red": "#d40000",
+  "line-azure": "#0069aa",
+  "line-green": "#4e9432",
+  "line-gold": "#e4a40f",
 } as const;
 
 type BevelInk = "ring" | "shadow" | "highlight";
@@ -1649,7 +1655,9 @@ export const CHROMES = {
       "engraving-shadow": "db32-black",
       "engraving-floor": "db32-gray-light",
       "engraving-lit": "db32-blue-ice",
-      "engraving-disabled": "db32-slate",
+      // Not the face's slate: a dead mark the colour of its key leaves only
+      // its lit edge, a stray stroke.
+      "engraving-disabled": "db32-gray",
       "engraving-danger-shadow": MICRO64_RED.maroon,
       "engraving-danger-floor": "db32-white",
       "engraving-danger-lit": MICRO64_RED.light,
@@ -3976,6 +3984,17 @@ export const ANIMATIONS = {
       { at: [100], scale: 1, opacity: 1 },
     ],
   },
+  // A sheet feeding out of a printer's slot, a line at a time, over the
+  // 3.25 s the printer's sound takes. Its box clips it at the slot.
+  "bureau-print-feed": {
+    durationMs: 3250,
+    easing: { steps: 24 },
+    fill: "forwards",
+    frames: [
+      { at: [0], translateYPercent: -100 },
+      { at: [100], translateYPercent: 0 },
+    ],
+  },
   "bureau-pop": {
     tempo: "snap",
     easing: { steps: 1 },
@@ -4233,21 +4252,13 @@ export const ANIMATIONS = {
       { atMs: 1050, opacity: 1 },
     ],
   },
-  // The paused and fast-forward lamps beside the city's name.
+  // The paused lamp beside the city's name.
   "bureau-pause-blink": {
     cycleMs: 1000,
     repeat: "forever",
     hold: [
       { atMs: 0, opacity: 1 },
       { atMs: 500, opacity: 0 },
-    ],
-  },
-  "bureau-fast-blink": {
-    cycleMs: 400,
-    repeat: "forever",
-    hold: [
-      { atMs: 0, opacity: 1 },
-      { atMs: 200, opacity: 0 },
     ],
   },
   // The incident dice rolling.

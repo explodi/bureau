@@ -204,6 +204,62 @@ Deno.test("a language change re-renders mounted native text", async () => {
   root.renderSync(null);
 });
 
+const winner = {
+  en: {
+    common: {
+      won: "{player, select, she {She won} he {He won} other {They won}}",
+    },
+  },
+};
+
+Deno.test("a default argument reaches a select whose call passes none", () => {
+  const i18n = createInstance({ resources: winner });
+  i18n.setDefaultArgument("player", "she");
+  assertEquals(i18n.t("won"), "She won");
+});
+
+Deno.test("a call's own argument wins over the default", () => {
+  const i18n = createInstance({ resources: winner });
+  i18n.setDefaultArgument("player", "she");
+  assertEquals(i18n.t("won", { player: "he" }), "He won");
+});
+
+Deno.test("with no default argument a select reads other", () => {
+  const i18n = createInstance({ resources: winner });
+  assertEquals(i18n.t("won"), "They won");
+});
+
+Deno.test("a default argument set to undefined is taken away", () => {
+  const i18n = createInstance({ resources: winner });
+  i18n.setDefaultArgument("player", "she");
+  i18n.setDefaultArgument("player", undefined);
+  assertEquals(i18n.t("won"), "They won");
+  assertEquals(i18n.defaultArguments, {});
+});
+
+Deno.test("a default argument re-renders mounted native text", async () => {
+  const i18n = createInstance({ resources: winner });
+  function Caption() {
+    const { t } = useTranslation("common", { i18n });
+    return createElement(Text, null, t("won"));
+  }
+  const commits: MutationStream[] = [];
+  const root = createNativeRoot((stream) => commits.push(stream));
+  root.renderSync(createElement(Caption));
+  i18n.setDefaultArgument("player", "he");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assertEquals(commits.at(-1)?.strings.includes("He won"), true);
+  root.renderSync(null);
+});
+
+Deno.test("a default argument leaves languageChanged listeners alone", () => {
+  const i18n = createInstance({ resources: winner });
+  const languages: string[] = [];
+  i18n.on("languageChanged", (language) => languages.push(language));
+  i18n.setDefaultArgument("player", "she");
+  assertEquals(languages, []);
+});
+
 Deno.test("context candidates prefer their English before the general message", () => {
   const i18n = createInstance({
     lng: "es",

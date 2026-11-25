@@ -17,8 +17,9 @@ UiRect intersect(const UiRect& a, const UiRect& b) {
                 std::max(0.0f, bottom - top)};
 }
 
-View::View(Reader read, ImageStore::Ask askPicture)
-    : fonts_(read),
+View::View(Reader read, ImageStore::Ask askPicture,
+           text::FontLibrary::Ask askFace)
+    : fonts_(read, std::move(askFace)),
       typesetter_(fonts_, tokens_),
       images_(read, std::move(askPicture)) {}
 
@@ -26,6 +27,11 @@ View::~View() = default;
 
 void View::pictureArrived(const std::string& path, ImageStore::Bytes bytes) {
   images_.arrived(path, std::move(bytes));
+  layoutDirty_ = true;
+}
+
+void View::faceArrived(const std::string& path, ImageStore::Bytes bytes) {
+  fonts_.arrived(path, std::move(bytes));
   layoutDirty_ = true;
 }
 

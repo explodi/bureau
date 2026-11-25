@@ -227,7 +227,12 @@ export const TextField = React.forwardRef<HostNode, TextFieldProps>(
             kind={type}
             bare
             disabled={disabled}
-            typeStyle={valueType(figures, Boolean(capitalize))}
+            // An empty field shows its placeholder in this style, and a
+            // placeholder keeps its own case.
+            typeStyle={valueType(
+              figures,
+              Boolean(capitalize) && String(value) !== "",
+            )}
             ink={disabled ? "ink-disabled" : invalid ? "ink-bad" : "ink"}
             align={EDGES[edge]}
             grow={1}

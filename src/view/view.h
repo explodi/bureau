@@ -53,10 +53,11 @@ using Dispatch = std::function<nlohmann::json(
 class View {
  public:
   using Reader = ImageStore::Reader;
-  /** `askPicture`, when given, may take a picture to read away from the
-   * view's thread (ImageStore::Ask): the view lays out and paints without it
-   * until `pictureArrived`. Faces are always read by `read`. */
-  explicit View(Reader read, ImageStore::Ask askPicture = nullptr);
+  /** `askPicture` and `askFace`, when given, may take a picture or a face
+   * file to read away from the view's thread (ImageStore::Ask): the view lays
+   * out and paints without it until `pictureArrived` or `faceArrived`. */
+  explicit View(Reader read, ImageStore::Ask askPicture = nullptr,
+                text::FontLibrary::Ask askFace = nullptr);
   ~View();
   View(const View&) = delete;
   View& operator=(const View&) = delete;
@@ -111,6 +112,9 @@ class View {
   /** A picture `askPicture` took, or nothing when it could not be read: the
    * next frame lays it out at its size and paints it. */
   void pictureArrived(const std::string& path, ImageStore::Bytes bytes);
+  /** A face file `askFace` took, or nothing when it could not be read: the
+   * next frame sets the text that waited for it. */
+  void faceArrived(const std::string& path, ImageStore::Bytes bytes);
   /** A game's event updates bindings without a React commit. */
   void event(const nlohmann::json& frame);
   /** Forgets what the events said: what they described is gone. */
@@ -163,6 +167,10 @@ class View {
   void selectText(int node);
   float measureText(const std::string& style, const std::string& text);
   UiRect viewport() const;
+  /** The whole window, insets included. */
+  UiRect window() const {
+    return UiRect{0, 0, windowWidth_ / uiScale_, windowHeight_ / uiScale_};
+  }
   /** In the node's own pixels. */
   nlohmann::json contentExtent(int node);
   void markNavigable(int node, const std::string& grid, bool on);

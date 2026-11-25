@@ -526,6 +526,9 @@ export type ButtonProps = {
   /** A stop on the pad's walk through its window, in `navigationGrid`. */
   navigable?: boolean;
   navigationGrid?: string;
+  /** How far past its face a finger still presses it, in points: a small
+   *  key with room around it. Unsaid, the size's own. */
+  hitSlop?: number;
   /** False: the pad and the host focus it, Tab passes it by. */
   tabStop?: boolean;
   /**
@@ -1055,6 +1058,7 @@ function Key(
     onPointerEnter,
     onHoverChange,
     onFocusChange,
+    hitSlop,
     children,
     ...rest
   }: ButtonProps & {
@@ -1196,13 +1200,13 @@ function Key(
         disabled={disabled}
         pressed={pressed}
         held={held || inProgress}
-        hitSlop={isClose
+        hitSlop={hitSlop ?? (isClose
           ? CLOSE_KEY_INSET
           : size === "compact"
           ? 4
           : size === "small"
           ? 2
-          : undefined}
+          : undefined)}
         focusable
         feedback={sound}
         opacity={withheld ? 0.6 : undefined}

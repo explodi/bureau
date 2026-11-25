@@ -83,6 +83,22 @@ Deno.test("engraving walls keep their light direction in both chromes", () => {
   );
 });
 
+Deno.test("a dead mark shows on the light chrome's key, quieter than a live one", () => {
+  const face = resolveColour("light", "face");
+  const dead = contrast(resolveColour("light", "engraving-disabled"), face);
+  const live = contrast(resolveColour("light", "engraving-floor"), face);
+  assert(dead >= 2);
+  assert(dead < live);
+});
+
+Deno.test("a dead mark shows on the dark chrome's key, quieter than a live one", () => {
+  const face = resolveColour("dark", "face");
+  const dead = contrast(resolveColour("dark", "engraving-disabled"), face);
+  const live = contrast(resolveColour("dark", "engraving-floor"), face);
+  assert(dead >= 2);
+  assert(dead < live);
+});
+
 Deno.test("the instrument back area shares the header bevel with a divider", () => {
   assertEquals(LOOKS["instrument-back"].rest.fill, "titlebar");
   assertEquals(BEVELS["instrument-back"], [

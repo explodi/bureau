@@ -28,7 +28,8 @@
  * parts these are (instrument_pad.ts).
  *
  * The geometry is the panels' own and is not negotiable — one 280px width and
- * anchor for every map view, 33px title bars (44px for a score),
+ * anchor for every map view (a panel that is no map view says where it
+ * stands), 33px title bars (44px for a score),
  * 33px readout or 44px action footers,
  * a body that grows until the bottom controls reserve their space,
  * a 12px inset everywhere,
@@ -71,6 +72,8 @@ export const INSTRUMENT_RIGHT_INSET = WIDGET_WIDTH + PANEL_RIGHT;
 /** The room the bottom controls keep: an xlarge HUD key (56), its margin
  * (8) and a group's gap (12). */
 const PANEL_BOTTOM = 56 + 8 + 12;
+/** The top-right corner every map view's instrument shares. */
+const MAP_CORNER = { top: PANEL_TOP, right: PANEL_RIGHT, bottom: PANEL_BOTTOM };
 
 /** A list body's height, about twelve rows: a long list scrolls in it
  *  instead of running the panel down the screen. */
@@ -84,6 +87,10 @@ type InstrumentProps = {
   /** In the flow of a page rather than pinned over the city's corner: the
    *  design catalog's specimens. */
   inline?: boolean;
+  /** Where it stands, in UI points from the screen's left edge and its top
+   *  and bottom; absent, the map views' corner. A panel that names its own
+   *  place is no map view, so it takes no part in the map panels' folding. */
+  anchor?: { left: number; top: number; bottom: number };
   /** The light tokens forced back over the instrument's dark ones: the road
    *  not taken, shown beside the shipped one. */
   chrome?: "light";
@@ -101,14 +108,16 @@ const InstrumentFold = createContext<
 >(null);
 
 /**
- * The shell: a dark Bureau window pinned to the top-right of the viewport,
- * its body shrinking first so the header, tabs and footer never clip. Its
- * loose text is set in the data font at 12px.
+ * The shell: a dark Bureau window pinned to the top-right of the viewport, or
+ * where its caller says, its body shrinking first so the header, tabs and
+ * footer never clip. Its loose text is set in the data font at 12px.
  */
 export function Instrument(
-  { width = WIDGET_WIDTH, id, inline, chrome, children }: InstrumentProps,
+  { width = WIDGET_WIDTH, id, inline, anchor, chrome, children }:
+    InstrumentProps,
 ) {
-  const { folded, unfold } = useMapPanelFold("instrument", !inline);
+  const isMapPanel = !inline && !anchor;
+  const { folded, unfold } = useMapPanelFold("instrument", isMapPanel);
   const [headerHeight, setHeaderHeight] = useState<number>(
     HEADER_HEIGHT.compact,
   );
@@ -141,12 +150,7 @@ export function Instrument(
     <Layer
       stacking="instrument"
       pinned
-      anchor={{
-        kind: "screen",
-        top: PANEL_TOP,
-        right: PANEL_RIGHT,
-        bottom: PANEL_BOTTOM,
-      }}
+      anchor={{ kind: "screen", ...(anchor ?? MAP_CORNER) }}
       passThrough
     >
       {shell}
