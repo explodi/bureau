@@ -546,6 +546,8 @@ Paragraph Typesetter::set(const std::vector<Span>& spans,
     float ascent = strut.ascent;
     float descent = strut.descent;
     size_t end = range.end;
+    // A line that ends its paragraph is not justified, as in print.
+    const bool endsAtBreak = end > range.begin && clusters[end - 1].newline;
     // Trailing spaces hang past the line's end.
     while (end > range.begin &&
            (clusters[end - 1].space || clusters[end - 1].newline)) {
@@ -630,7 +632,8 @@ Paragraph Typesetter::set(const std::vector<Span>& spans,
     } else if (options.align == ParagraphOptions::Align::End) {
       pen = options.maxWidth - line.width;
     } else if (options.align == ParagraphOptions::Align::Justify &&
-               !lastLine && std::isfinite(options.maxWidth)) {
+               !lastLine && !endsAtBreak &&
+               std::isfinite(options.maxWidth)) {
       const auto spaces = std::count_if(
           placed.begin(), placed.end(),
           [](const Cluster& cluster) { return cluster.space; });
