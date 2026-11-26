@@ -1098,14 +1098,13 @@ void View::paintImage(int id, const UiRect& rect, PaintState& state) {
                             "|" + std::to_string((x0 % period + period) % period) +
                             "," + std::to_string((y0 % period + period) % period) +
                             filterKey;
-    int padLeft = 0;
-    int padTop = 0;
-    std::optional<AtlasEntry> entry;
-    if (const AtlasEntry* known = atlas_.find(key)) {
-      entry = *known;
-      padLeft = known->left;
-      padTop = known->top;
-    } else {
+    // A large picture at a large UI scale outgrows an atlas page, so it goes
+    // into the atlas as tiles that each fit one; most pictures are one tile.
+    const int tileSize = atlas_.size() / 2;
+    const auto tileKey = [&key](int x, int y) {
+      return key + "|" + std::to_string(x) + "," + std::to_string(y);
+    };
+    if (atlas_.find(tileKey(0, 0)) == nullptr) {
       VectorRaster raster;
       raster.width = width;
       raster.height = height;
@@ -1114,16 +1113,30 @@ void View::paintImage(int id, const UiRect& rect, PaintState& state) {
       raster.screenY = y0;
       raster.ink = [this](style::Color ink) { return tokens_.drawnAs(ink); };
       Bitmap baked = rasterizeVector(*picture, raster);
+      int padLeft = 0;
+      int padTop = 0;
       if (filters.any()) baked = applyFilters(baked, filters, unit, padLeft, padTop);
-      entry = atlas_.add(key, baked.width, baked.height, premultiplied(baked),
-                         padLeft, padTop);
+      for (int y = 0; y < baked.height; y += tileSize) {
+        for (int x = 0; x < baked.width; x += tileSize) {
+          const Bitmap tile = cropped(baked, x, y, tileSize, tileSize);
+          atlas_.add(tileKey(x, y), tile.width, tile.height, premultiplied(tile),
+                     padLeft, padTop);
+        }
+      }
     }
-    if (!entry) return;
-    drawQuad(static_cast<float>(x0 - padLeft), static_cast<float>(y0 - padTop),
-             static_cast<float>(x0 - padLeft + entry->width),
-             static_cast<float>(y0 - padTop + entry->height), *entry,
-             static_cast<float>(entry->y), static_cast<float>(entry->height),
-             false);
+    // The tiles say how far the picture reaches: a row or a column ends at
+    // the first one the atlas does not hold.
+    for (int y = 0; atlas_.find(tileKey(0, y)) != nullptr; y += tileSize) {
+      for (int x = 0;; x += tileSize) {
+        const AtlasEntry* tile = atlas_.find(tileKey(x, y));
+        if (tile == nullptr) break;
+        const float left = static_cast<float>(x0 - tile->left + x);
+        const float top = static_cast<float>(y0 - tile->top + y);
+        drawQuad(left, top, left + tile->width, top + tile->height, *tile,
+                 static_cast<float>(tile->y), static_cast<float>(tile->height),
+                 false);
+      }
+    }
     return;
   }
 

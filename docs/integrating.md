@@ -103,11 +103,11 @@ set_target_properties(game PROPERTIES BUILD_RPATH "${BUREAU_HERMES_FRAMEWORKS}")
 `Options::readAsset` also answers for Bureau's own `assets/`, its fonts and icons,
 so ship that folder among your game's assets.
 
-A game that reads its pictures into memory ahead of time says which it holds with
-`Options::holdsAsset`. A picture it does not hold yet is then read on a thread of
-the UI's own and drawn once it arrives, so a slow disk does not hold the interface.
-Until then the view lays the picture out at no size: give a picture whose place
-matters its `width` and `height`.
+A game that reads its pictures and typefaces into memory ahead of time says which it
+holds with `Options::holdsAsset`. A file it does not hold yet is then read on a thread
+of the UI's own and drawn once it arrives, so a slow disk does not hold the interface.
+Until then the view lays the picture out at no size and sets no text in the face: give
+a picture whose place matters its `width` and `height`.
 
 The bundler knows Bureau's import names by itself. For your editor and type checker,
 set `bureau/kit/`, `bureau/primitives`, `bureau/host`, `bureau/jsx-runtime`,

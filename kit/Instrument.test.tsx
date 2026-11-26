@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import type { ReactNode } from "react";
+import { installPlatform, testPlatform } from "platform";
 import { type PlotCommand, type ScrollOffset, Text } from "bureau/primitives";
 import {
   createNativeRoot,
@@ -7,12 +8,14 @@ import {
   nativeNodes,
 } from "./primitives/reconciler.ts";
 import {
+  Instrument,
   InstrumentBody,
   InstrumentFooter,
   InstrumentHeader,
   InstrumentScoreHeader,
 } from "./Instrument.tsx";
 import { ListRow } from "./List.tsx";
+import { useMapPanelFold } from "./map_panel_fold.ts";
 import { useInstrumentStack } from "./instrument_stack.ts";
 
 /** Renders one element, reads what it drew, then clears it away. */
@@ -191,6 +194,88 @@ Deno.test("a scrambled header glitches its facts", () => {
         ),
     ),
     false,
+  );
+});
+
+const layerAnchor = (nodes: NativeNode[]) =>
+  nodes.find((node) => node.type === "bureau-layer")?.props.anchor;
+
+Deno.test("an instrument with no place stands in the map views' corner", () => {
+  assertEquals(
+    drawn(
+      <Instrument>
+        <InstrumentHeader heading="Police" />
+      </Instrument>,
+      layerAnchor,
+    ),
+    { kind: "screen", top: 60, right: 10, bottom: 76 },
+  );
+});
+
+Deno.test("an instrument given a place stands there", () => {
+  assertEquals(
+    drawn(
+      <Instrument anchor={{ left: 24, top: 80, bottom: 96 }}>
+        <InstrumentHeader heading="Start new city" />
+      </Instrument>,
+      layerAnchor,
+    ),
+    { kind: "screen", left: 24, top: 80, bottom: 96 },
+  );
+});
+
+/** A map's legend, as the city view's: it says whether it stands folded. */
+function Legend() {
+  const { folded } = useMapPanelFold("legend");
+  return <Text>{folded ? "legend folded" : "legend open"}</Text>;
+}
+
+/** Draws `element` on a platform that folds the map panels, as a tablet. */
+function drawnOnATablet<T>(
+  element: ReactNode,
+  read: (nodes: NativeNode[]) => T,
+): T {
+  const restore = installPlatform({
+    ...testPlatform,
+    capabilities: { ...testPlatform.capabilities, foldsMapPanels: true },
+  });
+  try {
+    return drawn(element, read);
+  } finally {
+    restore();
+  }
+}
+
+const shows = (text: string) => (nodes: NativeNode[]) =>
+  nodes.some((node) => node.children.some((child) => child.text === text));
+
+Deno.test("on a tablet, a map view's instrument folds the legend", () => {
+  assertEquals(
+    drawnOnATablet(
+      <>
+        <Legend />
+        <Instrument>
+          <InstrumentHeader heading="Police" />
+        </Instrument>
+      </>,
+      shows("legend folded"),
+    ),
+    true,
+  );
+});
+
+Deno.test("on a tablet, an instrument given a place counts as no map panel", () => {
+  assertEquals(
+    drawnOnATablet(
+      <>
+        <Legend />
+        <Instrument anchor={{ left: 24, top: 80, bottom: 96 }}>
+          <InstrumentHeader heading="Start new city" />
+        </Instrument>
+      </>,
+      shows("legend open"),
+    ),
+    true,
   );
 });
 

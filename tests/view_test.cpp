@@ -71,8 +71,9 @@ struct Fixture {
   bureau::View view;
   std::vector<Recorded> calls;
   Json answer = nullptr;
-  explicit Fixture(float scale = 1, bureau::ImageStore::Ask askPicture = nullptr)
-      : view(readPublic, std::move(askPicture)) {
+  explicit Fixture(float scale = 1, bureau::ImageStore::Ask askPicture = nullptr,
+                   bureau::text::FontLibrary::Ask askFace = nullptr)
+      : view(readPublic, std::move(askPicture), std::move(askFace)) {
     REQUIRE(view.loadTokens(tokenDocument()));
     view.setViewport(400, 300, scale);
     view.setDispatch([this](int node, std::string_view handler, const Json& args) {
@@ -3141,6 +3142,36 @@ TEST_CASE("a picture that arrives unread is missing") {
         std::vector<std::string>{"/icons/controller-xbox-a.png"});
 }
 
+/** A row that hugs one Text saying "A". */
+Stream huggedText() {
+  return Stream()
+      .create(1, "bureau-box", {{"direction", "row"}, {"alignSelf", "flex-start"}})
+      .create(2, "bureau-text")
+      .text(3, "A")
+      .append(2, 3)
+      .append(1, 2)
+      .append(0, 1);
+}
+
+TEST_CASE("text whose face is read away from the view lays out empty until it arrives") {
+  Fixture fixture(1, nullptr, [](const std::string&) { return true; });
+  fixture.commit(huggedText());
+  fixture.view.frame(0);
+  CHECK(fixture.rect(2).width == 0);
+  CHECK(fixture.view.displayList()->quads.empty());
+}
+
+TEST_CASE("text whose face is read away from the view lays out once it arrives") {
+  Fixture fixture(1, nullptr, [](const std::string&) { return true; });
+  fixture.commit(huggedText());
+  fixture.view.frame(0);
+  fixture.view.faceArrived("/fonts/Jersey25-Regular.ttf",
+                           readPublic("/fonts/Jersey25-Regular.ttf"));
+  fixture.view.frame(1);
+  CHECK(fixture.rect(2).width == 8.78125f);
+  CHECK(fixture.view.displayList()->quads.size() == 1);
+}
+
 TEST_CASE("a picture the asker leaves is read where it first lays out") {
   Fixture fixture(1, [](const std::string&) { return false; });
   fixture.commit(Stream().create(1, "bureau-image", {{"source", "/icons/controller-xbox-a.png"}}).append(0, 1));
@@ -3795,6 +3826,23 @@ TEST_CASE("an SVG picture lays out at its own size and draws at its device pixel
   CHECK(quad.y1 - quad.y0 == 338);
   CHECK_FALSE(quad.smooth);
   CHECK(fixture.view.displayList()->missingImages.empty());
+}
+
+TEST_CASE("an SVG picture wider than an atlas page draws in tiles, edge to edge") {
+  Fixture fixture(3);
+  fixture.view.setViewport(1000, 300, 3);
+  fixture.commit(Stream()
+    .create(1, "bureau-image", {{"source", "/pictures/figures.svg"},
+                                {"width", 1000}, {"height", 100}})
+    .append(0, 1));
+  REQUIRE(fixture.view.frame(0));
+  const auto& quads = fixture.view.displayList()->quads;
+  REQUIRE(quads.size() == 3);
+  CHECK(quads[0].x0 == 0);
+  CHECK(quads[0].x1 == 1024);
+  CHECK(quads[1].x0 == 1024);
+  CHECK(quads[2].x1 == 3000);
+  CHECK(quads[2].y1 == 300);
 }
 
 TEST_CASE("an SVG picture read away from the view lays out at its size once it arrives") {

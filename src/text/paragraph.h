@@ -9,6 +9,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -22,12 +23,23 @@ namespace bureau::text {
  * each opened once per size. */
 class FontLibrary {
  public:
-  using Reader = std::function<std::shared_ptr<const std::vector<uint8_t>>(
-      const std::string& path)>;
-  explicit FontLibrary(Reader read) : read_(std::move(read)) {}
+  using Bytes = std::shared_ptr<const std::vector<uint8_t>>;
+  using Reader = std::function<Bytes(const std::string& path)>;
+  /** Takes a file to read away from the library's thread, answering true; it
+   * comes back through `arrived`. False leaves it to `Reader`, at once. */
+  using Ask = std::function<bool(const std::string& path)>;
+  explicit FontLibrary(Reader read, Ask ask = nullptr)
+      : read_(std::move(read)), ask_(std::move(ask)) {}
 
-  /** Null when the file cannot be read or is no face. */
+  /** Null when the file cannot be read, is no face, or is still on its way
+   * from `Ask`. */
   Font* font(const std::string& source, float size);
+  /** A file `Ask` took, or nothing when it could not be read. */
+  void arrived(const std::string& source, Bytes bytes);
+  /** Whether `Ask` took the file and it has not arrived. */
+  bool onItsWay(const std::string& source) const {
+    return onItsWay_.contains(source);
+  }
   /** The same face at `factor` times the size: what a scaled UI rasterizes
    * with. */
   Font* scaled(const Font* font, float factor);
@@ -36,8 +48,14 @@ class FontLibrary {
   std::string sourceOf(const Font* font) const;
 
  private:
+  Bytes file(const std::string& source);
+
   Reader read_;
-  std::map<std::string, std::shared_ptr<const std::vector<uint8_t>>> bytes_;
+  Ask ask_;
+  /** Each file read; null for one `Ask` took that could not be read. */
+  std::map<std::string, Bytes> bytes_;
+  /** Taken by `ask_` and not yet arrived. */
+  std::set<std::string> onItsWay_;
   std::map<std::pair<std::string, long>, std::unique_ptr<Font>> fonts_;
   std::map<const Font*, std::string> sources_;
 };
@@ -123,7 +141,8 @@ struct Paragraph {
   float width = 0;
   float height = 0;
   /** The widest stretch no break opportunity splits: the narrowest the
-   * text wraps to. */
+   * text wraps to. Text that may break anywhere splits between any two
+   * characters. */
   float minContentWidth = 0;
   /** Lines or characters were dropped to fit. */
   bool truncated = false;
@@ -141,12 +160,17 @@ class Typesetter {
   Font* primary(const style::TypeStyle& type, float scale = 1);
 
  private:
+  /** The file and size `primary` opens; no file for a style with no face. */
+  std::pair<std::string, float> primaryFace(const style::TypeStyle& type,
+                                            float scale) const;
   Paragraph fit(const std::vector<Span>& spans,
                 const ParagraphOptions& options);
   /** A run's faces in the order its characters try them: the style's own,
    * then the language's fallbacks, each opened only when a character the
    * faces before it lack needs it. Opening every face up front read the
-   * shipped CJK faces, ten megabytes each, before the first Latin label. */
+   * shipped CJK faces, ten megabytes each, before the first Latin label.
+   * A face on its way ends the chain until it arrives, so that the faces
+   * after it are not read for characters it covers. */
   struct Chain {
     explicit Chain(FontLibrary& library) : library(library) {}
     FontLibrary& library;
@@ -155,6 +179,7 @@ class Typesetter {
      * been opened. */
     std::vector<std::pair<std::string, float>> fallbacks;
     size_t opened = 0;
+    bool waiting = false;
 
     /** The first face, which spaces and characters no face has take. */
     Font* first();

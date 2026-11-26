@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from "react";
 import { KIT_STRINGS } from "./kit_strings.ts";
-import { formatMessage } from "./message_format.ts";
+import { formatMessage, type MessageValues } from "./message_format.ts";
 
 export type CatalogValue = string | readonly CatalogValue[] | Catalog;
 export interface Catalog {
@@ -80,13 +80,25 @@ function render(
   );
 }
 
+/** What text on screen is formatted with besides each call's own options. */
+export interface I18nSnapshot {
+  readonly language: string;
+  readonly defaultArguments: MessageValues;
+}
+
 /** Catalog lookup and message formatting share one fallback boundary. */
 export class I18n {
   language = "en";
   readonly store: { data: Catalogs } = { data: {} };
   private defaultNS = "common";
   private fallbackNS = "common";
-  private listeners = new Set<(language: string) => void>();
+  private defaults: MessageValues = {};
+  private current: I18nSnapshot = {
+    language: this.language,
+    defaultArguments: this.defaults,
+  };
+  private languageListeners = new Set<(language: string) => void>();
+  private listeners = new Set<() => void>();
   private fallbacks = new Set<string>();
   private reportFallback?: I18nOptions["onFallback"];
 
@@ -121,17 +133,44 @@ export class I18n {
     const next = this.resolveLanguage(language);
     if (next !== this.language) {
       this.language = next;
-      for (const listener of this.listeners) listener(next);
+      for (const listener of this.languageListeners) listener(next);
+      for (const listener of this.listeners) listener();
     }
     return Promise.resolve(this.t);
   }
 
+  /** The arguments every message reads when its call does not pass them. */
+  get defaultArguments(): MessageValues {
+    return this.defaults;
+  }
+
+  /**
+   * Gives every message the argument `name` for calls that do not pass it
+   * themselves, or takes it away when `value` is undefined. Mounted text
+   * formats again, as after a language change; `languageChanged` listeners
+   * are not told, since the language stays.
+   */
+  setDefaultArgument(name: string, value: unknown): void {
+    const previous = Object.hasOwn(this.defaults, name)
+      ? this.defaults[name]
+      : undefined;
+    if (previous === value) return;
+    // A new object each time, so that whoever holds the old one sees a change.
+    const defaults: Record<string, unknown> = {
+      ...this.defaults,
+      [name]: value,
+    };
+    if (value === undefined) delete defaults[name];
+    this.defaults = defaults;
+    for (const listener of this.listeners) listener();
+  }
+
   on(_event: "languageChanged", listener: (language: string) => void): void {
-    this.listeners.add(listener);
+    this.languageListeners.add(listener);
   }
 
   off(_event: "languageChanged", listener: (language: string) => void): void {
-    this.listeners.delete(listener);
+    this.languageListeners.delete(listener);
   }
 
   readonly subscribe = (listener: () => void): () => void => {
@@ -140,7 +179,19 @@ export class I18n {
       this.listeners.delete(listener);
     };
   };
-  readonly snapshot = (): string => this.language;
+
+  /** A new object whenever the language or a default argument changes. */
+  readonly snapshot = (): I18nSnapshot => {
+    const isCurrent = this.current.language === this.language &&
+      this.current.defaultArguments === this.defaults;
+    if (!isCurrent) {
+      this.current = {
+        language: this.language,
+        defaultArguments: this.defaults,
+      };
+    }
+    return this.current;
+  };
 
   getResource(
     language: string,
@@ -200,6 +251,7 @@ export class I18n {
     const options = typeof value === "string"
       ? { ...extra, defaultValue: value }
       : value ?? {};
+    const values = { ...this.defaults, ...options };
     const language = this.resolveLanguage(options.lng ?? this.language);
     const keys = typeof key === "string" ? [key] : key;
     for (const candidate of keys) {
@@ -215,7 +267,7 @@ export class I18n {
             this.fallback(language, qualified, "Missing translation");
           } else {
             try {
-              return render(translated, options, language);
+              return render(translated, values, language);
             } catch (error) {
               this.fallback(language, qualified, error);
             }
@@ -228,7 +280,7 @@ export class I18n {
         );
         if (english === undefined) continue;
         try {
-          return render(english, options, "en");
+          return render(english, values, "en");
         } catch (error) {
           this.fallback("en", qualified, error);
         }
@@ -236,7 +288,7 @@ export class I18n {
     }
     if (options.defaultValue !== undefined) {
       try {
-        return formatMessage(options.defaultValue, options, "en");
+        return formatMessage(options.defaultValue, values, "en");
       } catch (error) {
         this.fallback("en", String(keys[0]), error);
       }
@@ -275,13 +327,15 @@ export function useTranslation(
   options?: { i18n?: I18n },
 ): { t: TFunction; i18n: I18n } {
   const instance = options?.i18n ?? i18n;
-  const language = useSyncExternalStore(instance.subscribe, instance.snapshot);
+  // A new translator for each snapshot, so memoized text that uses it renders
+  // again when a default argument changes too.
+  const snapshot = useSyncExternalStore(instance.subscribe, instance.snapshot);
   const defaultNamespace = typeof namespace === "string"
     ? namespace
     : namespace?.[0];
   const t = useMemo(
-    () => instance.getFixedT(language, defaultNamespace),
-    [instance, language, defaultNamespace],
+    () => instance.getFixedT(snapshot.language, defaultNamespace),
+    [instance, snapshot, defaultNamespace],
   );
   return { t, i18n: instance };
 }

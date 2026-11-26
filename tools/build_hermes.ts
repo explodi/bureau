@@ -1,5 +1,5 @@
 /** Build the pinned VM and its static ICU with a compiler of the same pin. */
-import { fromFileUrl, join } from "@std/path";
+import { fromFileUrl, isAbsolute, join } from "@std/path";
 import type { HermesPin } from "./fetch_hermes.ts";
 import {
   type AndroidToolchain,
@@ -20,6 +20,29 @@ async function run(
     stderr: "inherit",
   }).output();
   if (!result.success) throw new Error(`cmake ${args.join(" ")} failed`);
+}
+
+/**
+ * Starts `build` afresh when its CMake cache names a tool that is gone. CMake
+ * keeps the linker and archiver it first found by absolute path, so a tree
+ * restored onto a machine with a newer MSVC (a CI runner image update) would
+ * otherwise link with a toolset that no longer exists.
+ */
+export async function forgetVanishedToolset(build: string): Promise<void> {
+  const cache = await Deno.readTextFile(join(build, "CMakeCache.txt"))
+    .catch(() => "");
+  const toolEntry = /^CMAKE_[A-Z_]+:FILEPATH=(.+)$/gm;
+  const tools = [...cache.matchAll(toolEntry)].map((match) =>
+    (match[1] ?? "").trim()
+  );
+  const absoluteTools = tools.filter((tool) => isAbsolute(tool));
+  for (const tool of absoluteTools) {
+    const found = await Deno.stat(tool).then(() => true, () => false);
+    if (found) continue;
+    console.log(`${tool} is gone: building ${build} afresh`);
+    await Deno.remove(build, { recursive: true });
+    return;
+  }
 }
 
 /** What only the host's build needs: its folder and its CMake arguments. */
@@ -145,6 +168,7 @@ endif()
   for (const variant of ["release", "debug"]) {
     const build = join(host, variant);
     const started = performance.now();
+    await forgetVanishedToolset(build);
     await run([
       "-S",
       source,

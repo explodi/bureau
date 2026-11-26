@@ -163,8 +163,7 @@ Font* FontLibrary::font(const std::string& source, float size) {
   if (source.starts_with("system:")) {
     font = std::make_unique<Font>(source, size);
   } else {
-    auto& bytes = bytes_[source];
-    if (bytes == nullptr) bytes = read_(source);
+    const Bytes bytes = file(source);
     if (bytes == nullptr) return nullptr;
     font = std::make_unique<Font>(bytes, size);
   }
@@ -173,6 +172,26 @@ Font* FontLibrary::font(const std::string& source, float size) {
   sources_.emplace(opened, source);
   fonts_.emplace(key, std::move(font));
   return opened;
+}
+
+FontLibrary::Bytes FontLibrary::file(const std::string& source) {
+  if (const auto held = bytes_.find(source); held != bytes_.end()) {
+    return held->second;
+  }
+  if (onItsWay_.contains(source)) return nullptr;
+  const bool taken = ask_ && ask_(source);
+  if (taken) {
+    onItsWay_.insert(source);
+    return nullptr;
+  }
+  Bytes bytes = read_(source);
+  if (bytes != nullptr) bytes_.emplace(source, bytes);
+  return bytes;
+}
+
+void FontLibrary::arrived(const std::string& source, Bytes bytes) {
+  if (onItsWay_.erase(source) == 0) return;
+  bytes_.emplace(source, std::move(bytes));
 }
 
 Font* FontLibrary::scaled(const Font* font, float factor) {
@@ -187,6 +206,13 @@ std::string FontLibrary::sourceOf(const Font* font) const {
 }
 
 Font* Typesetter::primary(const style::TypeStyle& type, float scale) {
+  const auto [source, size] = primaryFace(type, scale);
+  if (source.empty()) return nullptr;
+  return fonts_.font(source, size);
+}
+
+std::pair<std::string, float> Typesetter::primaryFace(
+    const style::TypeStyle& type, float scale) const {
   std::string family = type.face;
 #if defined(__linux__)
   // The desktop's faces vary by distribution and by runtime: the system styles
@@ -196,17 +222,18 @@ Font* Typesetter::primary(const style::TypeStyle& type, float scale) {
   if (family == "monospace") family = "Diffusion Bold";
 #else
   const bool system = family == "system-ui" || family == "monospace";
-  if (system) return fonts_.font("system:" + family, type.size * scale);
+  if (system) return {"system:" + family, type.size * scale};
 #endif
   const auto* face = tokens_.face(family, type.weight);
-  if (face == nullptr) return nullptr;
-  return fonts_.font(face->source, type.size * scale * face->sizeAdjust);
+  if (face == nullptr) return {};
+  return {face->source, type.size * scale * face->sizeAdjust};
 }
 
 Typesetter::Chain Typesetter::chain(const style::TypeStyle& type, float scale,
                                     const std::string& language) {
   Chain chain(fonts_);
   if (Font* first = primary(type, scale)) chain.fonts.push_back(first);
+  chain.waiting = fonts_.onItsWay(primaryFace(type, scale).first);
   for (const auto& family : tokens_.fallbackFamilies(language)) {
     const auto* face = tokens_.face(family, type.weight);
     if (face == nullptr || face->source.empty()) continue;
@@ -217,9 +244,10 @@ Typesetter::Chain Typesetter::chain(const style::TypeStyle& type, float scale,
 }
 
 Font* Typesetter::Chain::openNext() {
-  while (opened < fallbacks.size()) {
+  while (!waiting && opened < fallbacks.size()) {
     const auto& [source, size] = fallbacks[opened++];
     Font* font = library.font(source, size);
+    waiting = library.onItsWay(source);
     const bool known =
         std::find(fonts.begin(), fonts.end(), font) != fonts.end();
     if (font == nullptr || known) continue;
@@ -440,7 +468,10 @@ Paragraph Typesetter::set(const std::vector<Span>& spans,
     for (size_t index = 0; index < clusters.size(); ++index) {
       const Cluster& cluster = clusters[index];
       if (!cluster.space) unbroken += cluster.width;
-      if (cluster.space || canBreakAfter(cluster)) {
+      // Text that may break anywhere may break after every character.
+      const bool opportunity =
+          options.breakAnywhere || cluster.space || canBreakAfter(cluster);
+      if (opportunity) {
         minContent = std::max(minContent, unbroken);
         unbroken = 0;
       }

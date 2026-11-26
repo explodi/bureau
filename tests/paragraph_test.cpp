@@ -166,6 +166,80 @@ TEST_CASE("text its own face covers reads no other face") {
   CHECK(read == std::vector<std::string>{"/fonts/Jersey25-Regular.ttf"});
 }
 
+/** A library whose asker takes every face file to read elsewhere. */
+struct Away {
+  bureau::style::Tokens tokens;
+  std::vector<std::string> read;
+  std::vector<std::string> asked;
+  bureau::text::FontLibrary fonts{
+      [this](const std::string& path) {
+        read.push_back(path);
+        return readPublic(path);
+      },
+      [this](const std::string& path) {
+        asked.push_back(path);
+        return true;
+      }};
+  bureau::text::Typesetter typesetter{fonts, tokens};
+  Away() {
+    std::ifstream file(BUREAU_TOKENS_JSON);
+    REQUIRE(tokens.load(std::string{std::istreambuf_iterator<char>{file}, {}}));
+  }
+
+  bureau::text::Paragraph set(const std::string& text) {
+    bureau::text::Span span;
+    span.text = text;
+    span.type = tokens.type("text", "en");
+    bureau::text::ParagraphOptions options;
+    options.strut = span.type;
+    return typesetter.set({span}, options);
+  }
+};
+
+TEST_CASE("text whose face is read elsewhere sets nothing until it arrives") {
+  Away away;
+  CHECK(away.set("Pressed").width == 0);
+  CHECK(away.read.empty());
+}
+
+TEST_CASE("text whose face is read elsewhere sets once it arrives") {
+  Away away;
+  away.set("Pressed");
+  away.fonts.arrived("/fonts/Jersey25-Regular.ttf",
+                     readPublic("/fonts/Jersey25-Regular.ttf"));
+  const auto paragraph = away.set("Pressed");
+  REQUIRE(paragraph.lines.size() == 1);
+  CHECK(paragraph.lines[0].glyphs.size() == 7);
+  CHECK(away.read.empty());
+}
+
+TEST_CASE("a face read elsewhere is asked for once, and no face after it") {
+  Away away;
+  away.set("Pressed");
+  away.set("Pressed again");
+  CHECK(away.asked == std::vector<std::string>{"/fonts/Jersey25-Regular.ttf"});
+}
+
+TEST_CASE("a fallback face read elsewhere keeps the faces after it unread") {
+  Away away;
+  away.set("Pressed");
+  away.fonts.arrived("/fonts/Jersey25-Regular.ttf",
+                     readPublic("/fonts/Jersey25-Regular.ttf"));
+  // Jersey 25 has no CJK: the character walks the fallbacks.
+  away.set("\u4e2d");
+  away.set("\u4e2d");
+  CHECK(away.asked.size() == 2);
+}
+
+TEST_CASE("a face that arrives unread is not read again") {
+  Away away;
+  away.set("Pressed");
+  away.fonts.arrived("/fonts/Jersey25-Regular.ttf", nullptr);
+  away.set("Pressed");
+  CHECK(away.read.empty());
+  CHECK(away.asked.front() == "/fonts/Jersey25-Regular.ttf");
+}
+
 TEST_CASE("a centered line offsets its glyphs once, by the line") {
   Setting setting;
   bureau::text::ParagraphOptions options;
@@ -175,6 +249,22 @@ TEST_CASE("a centered line offsets its glyphs once, by the line") {
   REQUIRE(paragraph.lines.size() == 1);
   CHECK(paragraph.lines[0].x == doctest::Approx(45.609375));
   CHECK(paragraph.lines[0].glyphs[0].x == 0);
+}
+
+TEST_CASE("text shrinks no narrower than its longest word") {
+  Setting setting;
+  const auto words = setting.set("a supercalifragilistic word");
+  const auto word = setting.set("supercalifragilistic");
+  CHECK(words.minContentWidth == doctest::Approx(word.width));
+}
+
+TEST_CASE("text that may break anywhere shrinks to its widest character") {
+  Setting setting;
+  bureau::text::ParagraphOptions options;
+  options.breakAnywhere = true;
+  const auto path = setting.set("/folders/7k08n1ys1r7gprt85cs", options);
+  const auto letter = setting.set("m");
+  CHECK(path.minContentWidth <= letter.width);
 }
 
 TEST_CASE("fitted labels keep short text at its original size") {

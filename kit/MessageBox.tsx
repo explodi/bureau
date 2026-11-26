@@ -82,7 +82,9 @@ function widestBox(wide: boolean, details: boolean): number {
 }
 
 /** The severity mark: a glyph on a 32px tile, bevelled in highlight and ink. */
-function SeverityTile({ severity }: { severity: MessageSeverity }) {
+export function SeverityTile(
+  { severity }: { severity: MessageSeverity },
+) {
   const tile = SEVERITY_TILE[severity];
   return (
     <Box

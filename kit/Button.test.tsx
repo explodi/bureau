@@ -50,6 +50,17 @@ Deno.test("a small destructive mark has a 33px face and an expanded hit area", (
   );
 });
 
+Deno.test("a key given a hit slop reaches that far past its face", () => {
+  assertEquals(
+    drawn(
+      <Button variant="toolbar" mark="left" hitSlop={8} />,
+      (nodes) =>
+        nodes.find((node) => node.props.role === "button")?.props.hitSlop,
+    ),
+    8,
+  );
+});
+
 Deno.test("replacing a small destructive mark with a pad glyph keeps its square", () => {
   assertEquals(
     drawn(
