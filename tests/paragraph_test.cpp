@@ -251,6 +251,32 @@ TEST_CASE("a centered line offsets its glyphs once, by the line") {
   CHECK(paragraph.lines[0].glyphs[0].x == 0);
 }
 
+TEST_CASE("a justified line that wraps reaches the far edge") {
+  Setting setting;
+  bureau::text::ParagraphOptions options;
+  options.maxWidth = 120;
+  const auto start = setting.set("one two three four five six", options);
+  options.align = bureau::text::ParagraphOptions::Align::Justify;
+  const auto justified = setting.set("one two three four five six", options);
+
+  REQUIRE(justified.lines.size() > 1);
+  CHECK(justified.lines[0].glyphs.back().x > start.lines[0].glyphs.back().x);
+}
+
+TEST_CASE("a justified line that ends its paragraph keeps its words together") {
+  Setting setting;
+  bureau::text::ParagraphOptions options;
+  options.maxWidth = 400;
+  options.preserveBreaks = true;
+  const auto start = setting.set("one two\nthree four", options);
+  options.align = bureau::text::ParagraphOptions::Align::Justify;
+  const auto justified = setting.set("one two\nthree four", options);
+
+  REQUIRE(justified.lines.size() == 2);
+  CHECK(justified.lines[0].glyphs.back().x ==
+        doctest::Approx(start.lines[0].glyphs.back().x));
+}
+
 TEST_CASE("text shrinks no narrower than its longest word") {
   Setting setting;
   const auto words = setting.set("a supercalifragilistic word");
