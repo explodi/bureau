@@ -414,12 +414,6 @@ export const BEVELS = {
     { side: "top-left", width: 2, color: "shadow" },
     { side: "bottom-right", width: 2, color: "highlight" },
   ],
-  // The dock's drawer: framed against the city, on a plate.
-  drawer: [
-    { side: "outer-ring", width: 1, color: "ring" },
-    { side: "top-left", width: 1, color: "highlight" },
-    { side: "bottom-right", width: 1, color: "shadow" },
-  ],
   // A sheet's rules: the column band's seams and the line under a record.
   "sheet-band": [
     { side: "top", width: 1, color: "shade" },
@@ -724,15 +718,16 @@ export const BEVELS = {
     { side: "bottom-right", width: 1, color: "highlight" },
     { side: "outer-ring", width: 1, color: "ink-bad" },
   ],
-  // A folder tab's run between its slanted ends: the ink edge along its top.
-  "tab-top": [{ side: "top", width: 1, color: "ink" }],
+  // A folder tab's run between its slanted ends: the edge along its top, in
+  // the line every frame is drawn with, which is black on both chromes.
+  "tab-top": [{ side: "top", width: 1, color: "ring" }],
   // The catalog's counter-example: a focus ring from some other system.
   "demo-foreign-ring": [
     { side: "outer-ring", width: 3, color: "db32-green" },
   ],
   // A notebook's page: the rule every tab is cut against, and a plate's sides.
   "notebook-page": [
-    { side: "top", width: 1, color: "ink" },
+    { side: "top", width: 1, color: "ring" },
     { side: "right", width: 1, color: "mid" },
     { side: "left", width: 1, color: "shade" },
     { side: "bottom", width: 1, color: "mid" },

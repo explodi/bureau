@@ -24,7 +24,7 @@ import { Box, Image, Layer, type PixelSource, Text } from "bureau/primitives";
 const HUD_CORNER_INSET = 6;
 
 /** The room one corner key takes from the window's side: what a strip
- *  across the bottom, the toolbox's shelf, leaves it. */
+ *  across the bottom, the toolbox's touch drawer, leaves it. */
 export const HUD_CORNER_WIDTH = HUD_CORNER_INSET + CONTROL_METRICS.large.height;
 
 /** A corner of the map: its keys centred 28px up, where the toolbox's tiles

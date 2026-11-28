@@ -57,12 +57,6 @@
       "y": 60
     },
     {
-      "recipe": "drawer",
-      "scheme": "light",
-      "x": 164,
-      "y": 60
-    },
-    {
       "recipe": "sheet-band",
       "scheme": "light",
       "x": 216,
@@ -685,12 +679,6 @@
       "scheme": "dark",
       "x": 372,
       "y": 736
-    },
-    {
-      "recipe": "drawer",
-      "scheme": "dark",
-      "x": 8,
-      "y": 788
     },
     {
       "recipe": "sheet-band",

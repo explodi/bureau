@@ -615,7 +615,15 @@ export type ButtonProps = {
    */
   layout?: Pick<
     Layout,
-    "width" | "margin" | "padding" | "gap" | "grow" | "shrink" | "minWidth"
+    | "width"
+    | "height"
+    | "margin"
+    | "padding"
+    | "gap"
+    | "grow"
+    | "shrink"
+    | "minWidth"
+    | "minHeight"
   >;
   /** Takes the room left in its row: a lone key across a strip. */
   grow?: true;

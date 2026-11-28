@@ -15,7 +15,7 @@ import { getFocusedNode, host, type HostNode } from "bureau/host";
  *    reading a different one.
  *
  * THE TAB'S FORM is a trapezoid slanted 10px on both sides, Mac OS 8's tab
- * panel: an ink shape with the face laid a pixel inside it, open at the
+ * panel: a shape in the frame's line with the face laid a pixel inside it, open at the
  * bottom, so the open tab and the page read as one piece of card. The host
  * draws the card whole, a slanted box, at the screen's own pixels. Each tab is
  * pulled left by both its slants, so neighbours interlock the way filed card
@@ -116,10 +116,20 @@ function TabFocusMark({ height }: { height: number }) {
   );
 }
 
+/**
+ * The fill of the page a strip is filed in, which its tabs are cut from: a
+ * window's face, or the paper of an instrument on the map.
+ */
+type TabGround = "face" | "paper";
+
+/** What a filed tab lifts to under the pointer, a step off its ground. */
+const LIFTED: Record<TabGround, Ink> = { face: "face-light", paper: "face" };
+
 function TabKey(
   {
     stripId,
     tab,
+    ground,
     selected,
     tabStop,
     interlocks,
@@ -131,6 +141,7 @@ function TabKey(
   }: {
     stripId: string;
     tab: Tab;
+    ground: TabGround;
     selected: boolean;
     tabStop: boolean;
     interlocks: boolean;
@@ -147,7 +158,7 @@ function TabKey(
   const drop = selected ? 0 : FILED_CARD_DROP;
   // Card filed behind the page lifts under the pointer; the open tab never
   // changes at all.
-  const face: Ink = hovered && !selected ? "face-light" : "face";
+  const face: Ink = hovered && !selected ? LIFTED[ground] : ground;
   const { badge, hint } = tab;
   return (
     <Box
@@ -217,7 +228,12 @@ function TabKey(
 }
 
 export function Tabs<Id extends string>(
-  { id, tabs, activeId, onSelect }: TabsProps<Id>,
+  { id, tabs, activeId, onSelect, ground = "face" }:
+    & TabsProps<Id>
+    & {
+      /** The fill of the page the strip is filed in; a window's face unsaid. */
+      ground?: TabGround;
+    },
 ) {
   const inputMode = useHintDevice();
   const showGamepadHints = inputMode === "gamepad";
@@ -283,6 +299,7 @@ export function Tabs<Id extends string>(
       key={tab.id}
       stripId={id}
       tab={tab}
+      ground={ground}
       selected={tab.id === activeId}
       tabStop={index === rovingIndex}
       interlocks={index > 0}
