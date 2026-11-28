@@ -418,16 +418,21 @@ export function activeInputDevice(): InputMode {
  * disconnects; otherwise the device used last.
  */
 export function useHintDevice(): InputMode {
-  const mode = useSyncExternalStore(
-    subscribeToInputMode,
-    () => currentInputMode,
-  );
+  const mode = useInputMode();
   const { connected } = useGamepad();
   return connected && padPromptsHeld ? "gamepad" : mode;
 }
 
 /** The device the player is using right now, outside React. */
 export const getInputMode = (): InputMode => currentInputMode;
+
+/**
+ * The device the player is using right now. A pointer keeps its place and its
+ * hover after the hand leaves it for the pad: this says which one is in hand.
+ */
+export function useInputMode(): InputMode {
+  return useSyncExternalStore(subscribeToInputMode, getInputMode);
+}
 
 export function useGamepad() {
   const connected = useSyncExternalStore(
